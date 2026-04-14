@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator
 
 from evdev import UInput
 from evdev.ecodes import EV, EV_MSC, bytype
@@ -13,10 +14,13 @@ class Package:
         skip_list: tuple[int] = (EV_MSC,),
     ) -> None:
         self._skip_list = skip_list
-        self._events = []
+        self._events = list[InputEvent]()
 
     def __getitem__(self, key) -> InputEvent:
         return self._events[key]
+
+    def __iter__(self) -> Iterator[InputEvent]:
+        yield from self._events
 
     def append(self, e: InputEvent) -> None:
         if e.type in self._skip_list:

@@ -5,14 +5,12 @@
 # ]
 # ///
 import logging
-import statistics
 import threading
 import time
 from collections import deque
 
-from evdev import InputDevice
+from evdev import UInput
 from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
-from evdev.events import InputEvent
 
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
@@ -23,7 +21,7 @@ logger = logging.getLogger(__file__)
 class WheelBuffer:
     def __init__(
         self,
-        dst_dev: InputDevice,
+        dst_dev: UInput,
         *,
         delay: float,
         min_history_len: int,
@@ -58,7 +56,7 @@ class WheelBuffer:
             # pick high res version as stats
             window = tuple(e.value for e in package if e.code == REL_WHEEL_HI_RES)
             # modify the sign of the events
-            sign = +1 if sum(window) > 0 else -1
+            sign = +1 if sum(window) >= 0 else -1
             for e in package:
                 if e.value != 0:
                     e.value = sign*abs(e.value)
