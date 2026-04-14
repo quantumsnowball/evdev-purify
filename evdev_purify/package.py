@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator
 
 from evdev import UInput
 from evdev.ecodes import EV, EV_MSC, bytype
@@ -7,18 +8,34 @@ from evdev.events import InputEvent
 logger = logging.getLogger(__file__)
 
 
+class Event:
+    def __init__(self, event: InputEvent) -> None:
+        self.type = event.type
+        self.code = event.code
+        self.value = event.value
+        self.old_value = event.value
+        self.timestamp = event.timestamp()
+
+    @property
+    def is_modified(self) -> bool:
+        return self.value != self.old_value
+
+
 class Package:
     def __init__(
         self,
         skip_list: tuple[int] = (EV_MSC,),
     ) -> None:
         self._skip_list = skip_list
-        self._events = []
+        self._events = list[Event]()
 
-    def __getitem__(self, key) -> InputEvent:
+    def __getitem__(self, key) -> Event:
         return self._events[key]
 
-    def append(self, e: InputEvent) -> None:
+    def __iter__(self) -> Iterator[Event]:
+        yield from self._events
+
+    def append(self, e: Event) -> None:
         if e.type in self._skip_list:
             return
         self._events.append(e)
@@ -26,4 +43,4 @@ class Package:
     def send(self, dev: UInput) -> None:
         for e in self._events:
             dev.write(e.type, e.code, e.value)
-            logger.debug(f'SENT: {e.timestamp()}, {EV[e.type]}, {bytype[e.type][e.code]}, {e.value=}')
+            logger.debug(f'SENT: {e.timestamp}, {EV[e.type]}, {bytype[e.type][e.code]}, {e.value=}')

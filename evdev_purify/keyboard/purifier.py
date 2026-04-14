@@ -27,8 +27,8 @@ class Purifier(Base):
         # intercept all src events
         logger.info(f'Grabbed {self._src_dev_path}')
         self._src_dev.grab()
-        # then process all src events
 
+        # then process all src events
         for p in self._packages:
             # use the first event as the comparison target
             e = p[0]
@@ -36,9 +36,9 @@ class Purifier(Base):
             # intercept for non EV_SYN keydown event
             if e.type != EV_SYN and e.value == 1:
                 # calc the time interval from the last event with the same type and code
-                interval = e.timestamp() - self._last_timestamp[e.type][e.code]
+                interval = e.timestamp - self._last_timestamp[e.type][e.code]
                 # move the timestamp to new position
-                self._last_timestamp[e.type][e.code] = e.timestamp()
+                self._last_timestamp[e.type][e.code] = e.timestamp
                 # if interval is too short, discard the packet
                 if interval < self._max_event_interval:
                     logger.info(f'DROP: time={interval*1000:.2f}ms, {EV[e.type]}, {bytype[e.type][e.code]}, {e.value=}')
