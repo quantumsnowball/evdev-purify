@@ -1,39 +1,23 @@
 import logging
 import time
 from collections import defaultdict
-from typing import Iterator
 
-import evdev
-from evdev import InputDevice, UInput
 from evdev.ecodes import EV, EV_SYN, bytype
 
-from evdev_purify.package import Package
+from evdev_purify.purifier import Purifier as Base
 
 logger = logging.getLogger(__file__)
 
 
-class Purifier:
+class Purifier(Base):
     def __init__(
         self,
         name: str,
         *,
         max_event_interval: float,
     ) -> None:
-        self._max_event_interval = max_event_interval
-        paths = {InputDevice(path).name: path for path in evdev.list_devices()}
-        self._src_dev_path = paths[name]
-        self._src_dev = InputDevice(self._src_dev_path)
-        self._dst_dev = UInput.from_device(self._src_dev, name=f'Purifier: {name}')
+        super().__init__(name, max_event_interval=max_event_interval)
         self._last_timestamp: dict[int, dict[int, float]] = defaultdict(lambda: defaultdict(float))
-
-    @property
-    def _packages(self) -> Iterator[Package]:
-        p = Package()
-        for e in self._src_dev.read_loop():
-            p.append(e)
-            if e.type == EV_SYN:
-                yield p
-                p = Package()
 
     def run(self) -> None:
         logger.info(f'Starting Purifier on {self._src_dev_path} ...')
