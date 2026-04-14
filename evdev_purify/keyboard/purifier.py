@@ -27,8 +27,8 @@ class Purifier(Base):
         # intercept all src events
         logger.info(f'Grabbed {self._src_dev_path}')
         self._src_dev.grab()
-        # then process all src events
 
+        # then process all src events
         for p in self._packages:
             # use the first event as the comparison target
             e = p[0]
