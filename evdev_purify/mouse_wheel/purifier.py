@@ -29,12 +29,11 @@ class WheelBuffer:
         max_event_interval: float,
     ) -> None:
         self._dst_dev = dst_dev
-        self._delay = delay
         self._history = deque[Package]()
         self._last_timestamp = 0.0
         self._min_history_len = min_history_len
         self._max_event_interval = max_event_interval
-        self._scheduler = Scheduler()
+        self._scheduler = Scheduler(delay=delay)
 
     def _fire(self) -> None:
         # pop value
@@ -52,7 +51,7 @@ class WheelBuffer:
         interval = e.timestamp - self._last_timestamp
         self._last_timestamp = e.timestamp
         if interval < self._max_event_interval:
-            self._scheduler.add_task(lambda: logger.info('     X     '), self._delay)
+            self._scheduler.add_task(lambda: logger.info('     X     '))
             return
         # follow vote if already have enough history
         if len(self._history) > self._min_history_len:
@@ -68,7 +67,7 @@ class WheelBuffer:
         # append the event to history
         self._history.append(package)
         # schedule the event
-        self._scheduler.add_task(self._fire, self._delay)
+        self._scheduler.add_task(self._fire)
 
 
 class Purifier(Base):

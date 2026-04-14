@@ -12,7 +12,9 @@ class Job(NamedTuple):
 
 
 class Scheduler:
-    def __init__(self) -> None:
+    def __init__(self, delay: float = 0) -> None:
+        # defaults
+        self._delay = delay
         # all tasks
         self.jobs = list[Job]()
         # sync condition
@@ -20,7 +22,9 @@ class Scheduler:
         # start in a new daemon thread
         threading.Thread(target=self._worker, daemon=True).start()
 
-    def add_task(self, task: Task, delay: float) -> None:
+    def add_task(self, task: Task, *, delay: float | None = None) -> None:
+        # default delay
+        delay = delay if delay is not None else self._delay
         # calc the precise timestamp of execution
         execution_time = time.monotonic() + delay
         # sync condition
