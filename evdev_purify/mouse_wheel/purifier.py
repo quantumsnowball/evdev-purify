@@ -5,7 +5,6 @@
 # ]
 # ///
 import logging
-import threading
 import time
 from collections import deque
 
@@ -14,6 +13,8 @@ from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
 
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
+
+from .scheduler import Scheduler
 
 logger = logging.getLogger(__file__)
 
@@ -33,6 +34,7 @@ class WheelBuffer:
         self._last_timestamp = 0.0
         self._min_history_len = min_history_len
         self._max_event_interval = max_event_interval
+        self._scheduler = Scheduler()
 
     def _fire(self) -> None:
         # pop value
@@ -50,8 +52,7 @@ class WheelBuffer:
         interval = e.timestamp - self._last_timestamp
         self._last_timestamp = e.timestamp
         if interval < self._max_event_interval:
-            t = threading.Timer(self._delay, lambda: logger.info('     X     '))
-            t.start()
+            self._scheduler.add_task(lambda: logger.info('     X     '), self._delay)
             return
         # follow vote if already have enough history
         if len(self._history) > self._min_history_len:
@@ -66,9 +67,8 @@ class WheelBuffer:
                     # print(f'{sign=} {e.value=} {e.old_value=}')
         # append the event to history
         self._history.append(package)
-        # timer schedule the event
-        t = threading.Timer(self._delay, self._fire)
-        t.start()
+        # schedule the event
+        self._scheduler.add_task(self._fire, self._delay)
 
 
 class Purifier(Base):
