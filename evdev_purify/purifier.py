@@ -6,7 +6,7 @@ import evdev
 from evdev import InputDevice, UInput
 from evdev.ecodes import EV_SYN
 
-from evdev_purify.package import Package
+from evdev_purify.package import Event, Package
 
 logger = logging.getLogger(__file__)
 
@@ -26,12 +26,13 @@ class Purifier(ABC):
 
     @property
     def _packages(self) -> Iterator[Package]:
-        p = Package()
+        package = Package()
         for e in self._src_dev.read_loop():
-            p.append(e)
+            # append as custom Event type
+            package.append(Event(e))
             if e.type == EV_SYN:
-                yield p
-                p = Package()
+                yield package
+                package = Package()
 
     @abstractmethod
     def run(self) -> None:

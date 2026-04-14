@@ -40,26 +40,29 @@ class WheelBuffer:
         # write to dst dev
         package.send(self._dst_dev)
         # debug
-        logger.info(f"{'     |---->' if package[0].value > 0 else '<----|     '}")
+        bd = '====' if package[0].is_modified else '    '
+        logger.info(f"{f'     |{bd}>' if package[0].value > 0 else f'<{bd}|     '}")
 
     def append(self, package: Package) -> None:
         # choose the first event
         e = package[0]
         # reject too frequent event as noise
-        interval = e.timestamp() - self._last_timestamp
-        self._last_timestamp = e.timestamp()
+        interval = e.timestamp - self._last_timestamp
+        self._last_timestamp = e.timestamp
         if interval < self._max_event_interval:
             logger.info('     X     ')
             return
         # follow vote if already have enough history
         if len(self._history) > self._min_history_len:
             # pick high res version as stats
-            window = tuple(e.value for e in package if e.code == REL_WHEEL_HI_RES)
+            window = tuple(e.value for p in self._history for e in p
+                           if e.code == REL_WHEEL_HI_RES)
             # modify the sign of the events
             sign = +1 if sum(window) >= 0 else -1
             for e in package:
                 if e.value != 0:
                     e.value = sign*abs(e.value)
+                    # print(f'{sign=} {e.value=} {e.old_value=}')
         # append the event to history
         self._history.append(package)
         # timer schedule the event
