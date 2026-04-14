@@ -50,7 +50,8 @@ class WheelBuffer:
         interval = e.timestamp - self._last_timestamp
         self._last_timestamp = e.timestamp
         if interval < self._max_event_interval:
-            logger.info('     X     ')
+            t = threading.Timer(self._delay, lambda: logger.info('     X     '))
+            t.start()
             return
         # follow vote if already have enough history
         if len(self._history) > self._min_history_len:
