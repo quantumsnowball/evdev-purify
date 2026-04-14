@@ -1,8 +1,12 @@
+import logging
 from typing import Annotated
 
 from typer import Argument, Option, Typer
 
 app = Typer()
+
+
+logger = logging.getLogger(__file__)
 
 
 @app.command(
@@ -11,6 +15,10 @@ app = Typer()
 )
 def keyboard(
     name: Annotated[str, Argument(help='The device name from evtest')],
+    debug: Annotated[bool, Option(help='Enable debug mode verbose output')] = False,
 ) -> None:
-    print('keyboard sub-command')
-    print(f'{name=}')
+    # logger
+    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO, format='%(levelname)s: %(message)s')
+
+    logger.info('keyboard sub-command')
+    logger.info(f'{name=}')
