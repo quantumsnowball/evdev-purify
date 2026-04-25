@@ -13,7 +13,7 @@ dependencies = [
     "typer",
     "evdev",
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.14.4"
 
 [project.urls]
 Homepage = "https://github.com/quantumsnowball/evdev-purify"
