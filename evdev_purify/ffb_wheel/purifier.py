@@ -20,7 +20,10 @@ class Purifier(Base):
         for p in self._packages:
             # skip and log multiple events packages
             if len(p) > 1:
-                logger.info(f'Multi-event package: {p}')
+                # only log very high event count package for debug purpose
+                if len(p) > 4:
+                    logger.info(f'Multi-event package: {p}')
+                # skip to next
                 continue
 
             # only interested in single event key-press package
