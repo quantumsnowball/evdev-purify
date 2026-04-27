@@ -1,6 +1,7 @@
 import logging
 
 from evdev import UInput
+from evdev.ecodes import EV_KEY
 
 from evdev_purify.purifier import Purifier as Base
 
@@ -17,4 +18,12 @@ class Purifier(Base):
 
         # intercept all src events and process them
         for p in self._packages:
-            logger.info(p)
+            # skip and log multiple events packages
+            if len(p) > 1:
+                logger.info(f'Multi-event package: {p}')
+                continue
+
+            # only interested in single event key-press package
+            if p.types == {EV_KEY, }:
+                # TODO: you can then safely remap your key into any keyboard code and use it in your game
+                logger.info(p)
