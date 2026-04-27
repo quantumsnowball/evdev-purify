@@ -2,7 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Iterator
 
-import evdev
+import pyudev
 from evdev import InputDevice
 from evdev.ecodes import EV_SYN
 
@@ -13,9 +13,38 @@ logger = logging.getLogger(__file__)
 
 class Purifier(ABC):
     def __init__(self, name: str) -> None:
-        paths = {InputDevice(path).name: path for path in evdev.list_devices()}
-        self._src_dev_path = paths[name]
-        self._src_dev = InputDevice(self._src_dev_path)
+        self._name = name
+
+    @property
+    def _src_dev(self) -> InputDevice:
+        context = pyudev.Context()
+        monitor = pyudev.Monitor.from_netlink(context)
+        monitor.filter_by(subsystem='input')
+
+        # retry loop for device connection
+        while True:
+            # try to find and return the device if it already connected
+            for item in context.list_devices(subsystem='input'):
+                try:
+                    if item.device_node is not None:
+                        dev = InputDevice(item.device_node)
+                        if dev.name == self._name:
+                            logger.info(f'Found existing device: {self._name}')
+                            return dev
+                except Exception:
+                    continue
+            # then block until any device is added, and check if this is the targeted device
+            try:
+                logger.info(f'Waiting for device: {self._name}')
+                for item in iter(monitor.poll, None):
+                    if item.device_node is not None and item.action == 'add':
+                        dev = InputDevice(item.device_node)
+                        if dev.name == self._name:
+                            logger.info(f'Found newly added device: {self._name}')
+                            return dev
+            except Exception as e:
+                logger.error(e)
+                continue
 
     @property
     def _packages(self) -> Iterator[Package]:

@@ -52,7 +52,7 @@ class Purifier(Base):
         self._dst_dev = UInput(name=f'Purifier: {name}')
 
     def run(self) -> None:
-        logger.info(f'Starting Purifier on {self._src_dev_path} ...')
+        logger.info(f'Starting Purifier ...')
 
         # intercept all src events and process them
         for p in self._packages:

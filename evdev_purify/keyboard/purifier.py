@@ -23,12 +23,12 @@ class Purifier(Base):
         self._last_timestamp: dict[int, dict[int, float]] = defaultdict(lambda: defaultdict(float))
 
     def run(self) -> None:
-        logger.info(f'Starting Purifier on {self._src_dev_path} ...')
+        logger.info(f'Starting Purifier ...')
         # small delay befoe grab, avoid command Enter release being capped
         # NOTE: please press enter key quickly
         time.sleep(0.5)
         # intercept all src events
-        logger.info(f'Grabbed {self._src_dev_path}')
+        logger.info(f'Grabbed {self._name}')
         self._src_dev.grab()
 
         # then process all src events
