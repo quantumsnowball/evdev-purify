@@ -1,0 +1,25 @@
+import logging
+from typing import Annotated
+
+from typer import Argument, Option, Typer
+
+app = Typer()
+
+logger = logging.getLogger(__file__)
+
+
+@app.command(
+    no_args_is_help=True,
+    help='ffb-wheel event purifier',
+)
+def ffb_wheel(
+    name: Annotated[str, Argument(help='The device name from evtest')],
+    debug: Annotated[bool, Option(help='Enable debug mode verbose output')] = False,
+) -> None:
+    # logger
+    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO, format='%(levelname)s: %(message)s')
+
+    # device
+
+    # run
+    logger.info(f'{name=}')
