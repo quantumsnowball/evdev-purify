@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Iterator
 
 import evdev
-from evdev import InputDevice, UInput
+from evdev import InputDevice
 from evdev.ecodes import EV_SYN
 
 from evdev_purify.package import Event, Package
@@ -16,7 +16,6 @@ class Purifier(ABC):
         paths = {InputDevice(path).name: path for path in evdev.list_devices()}
         self._src_dev_path = paths[name]
         self._src_dev = InputDevice(self._src_dev_path)
-        self._dst_dev = UInput.from_device(self._src_dev, name=f'Purifier: {name}')
 
     @property
     def _packages(self) -> Iterator[Package]:
