@@ -34,6 +34,9 @@ class Package:
         self._skip_list = skip_list
         self._events = list[Event]()
 
+    def __len__(self) -> int:
+        return len(self._events)
+
     def __getitem__(self, key) -> Event:
         return self._events[key]
 
