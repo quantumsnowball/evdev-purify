@@ -28,8 +28,7 @@ class Purifier(ABC):
                 try:
                     if item.device_node is not None:
                         dev = InputDevice(item.device_node)
-                        caps = dev.capabilities()
-                        if dev.name == self._name and EV_ABS in caps and EV_FF in caps:
+                        if self._is_targeted_device(dev):
                             logger.info(f'Found existing device: {self._name} at {item.device_node}')
                             return dev
                 except Exception:
@@ -40,8 +39,7 @@ class Purifier(ABC):
                 try:
                     if item.device_node is not None and item.action == 'add':
                         dev = InputDevice(item.device_node)
-                        caps = dev.capabilities()
-                        if dev.name == self._name and EV_ABS in caps and EV_FF in caps:
+                        if self._is_targeted_device(dev):
                             logger.info(f'Found newly added device: {self._name} at {item.device_node}')
                             return dev
                 except Exception:
@@ -56,6 +54,10 @@ class Purifier(ABC):
             if e.type == EV_SYN:
                 yield package
                 package = Package()
+
+    @abstractmethod
+    def _is_targeted_device(self, dev: InputDevice) -> bool:
+        ...
 
     @abstractmethod
     def run(self) -> None:

@@ -1,8 +1,8 @@
 import logging
 
-from evdev import UInput
+from evdev import InputDevice, UInput
 from evdev import ecodes as ec
-from evdev.ecodes import EV_KEY
+from evdev.ecodes import EV_ABS, EV_FF, EV_KEY
 
 from evdev_purify.purifier import Purifier as Base
 
@@ -50,6 +50,14 @@ class Purifier(Base):
         super().__init__(name)
         self._log_threshold = log_threshold
         self._dst_dev = UInput(name=f'Purifier: {name}')
+
+    def _is_targeted_device(self, dev: InputDevice) -> bool:
+        caps = dev.capabilities()
+        return (
+            dev.name == self._name and
+            EV_ABS in caps and
+            EV_FF in caps
+        )
 
     def run(self) -> None:
         logger.info(f'Starting Purifier ...')
