@@ -79,7 +79,7 @@ class Purifier(Base):
         min_history_len: int,
         max_event_interval: float,
     ) -> None:
-        super().__init__(name, max_event_interval=max_event_interval)
+        super().__init__(name)
         self._wheel_buffer = WheelBuffer(
             self._dst_dev,
             delay=delay,

@@ -12,13 +12,7 @@ logger = logging.getLogger(__file__)
 
 
 class Purifier(ABC):
-    def __init__(
-        self,
-        name: str,
-        *,
-        max_event_interval: float,
-    ) -> None:
-        self._max_event_interval = max_event_interval
+    def __init__(self, name: str) -> None:
         paths = {InputDevice(path).name: path for path in evdev.list_devices()}
         self._src_dev_path = paths[name]
         self._src_dev = InputDevice(self._src_dev_path)

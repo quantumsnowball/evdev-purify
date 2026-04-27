@@ -16,7 +16,8 @@ class Purifier(Base):
         *,
         max_event_interval: float,
     ) -> None:
-        super().__init__(name, max_event_interval=max_event_interval)
+        super().__init__(name)
+        self._max_event_interval = max_event_interval
         self._last_timestamp: dict[int, dict[int, float]] = defaultdict(lambda: defaultdict(float))
 
     def run(self) -> None:
