@@ -22,7 +22,7 @@ def ffb_wheel(
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO, format='%(levelname)s: %(message)s')
 
     # device
-    purifier = Purifier(name, max_event_interval=max_event_interval)
+    purifier = Purifier(name)
 
     # run
     try:
