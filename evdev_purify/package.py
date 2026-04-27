@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Iterator
 
 from evdev import UInput
@@ -48,7 +49,8 @@ class Package:
         return f'Package{tuple(self)}'
 
     def __str__(self) -> str:
-        return f'Package(len={len(self)}, contains={self.type_names})'
+        dt = datetime.fromtimestamp(self._events[0].timestamp).isoformat(timespec='milliseconds').replace('T', '_')
+        return f'Package(time={dt}, len={len(self)}, types={self.type_names})'
 
     @property
     def types(self) -> set[int]:

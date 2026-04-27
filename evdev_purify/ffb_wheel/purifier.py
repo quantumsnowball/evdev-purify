@@ -54,7 +54,7 @@ class Purifier(Base):
             if len(p) > 1:
                 # only log very high event count package for debug purpose
                 if len(p) > 4:
-                    logger.info(f'Multi-event package: {p}')
+                    logger.info(f'BIG: {p}')
                 # skip to next
                 continue
 
