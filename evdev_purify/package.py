@@ -2,7 +2,7 @@ import logging
 from typing import Iterator
 
 from evdev import UInput
-from evdev.ecodes import EV, EV_MSC, bytype
+from evdev.ecodes import EV, EV_MSC, EV_SYN, bytype
 from evdev.events import InputEvent
 
 logger = logging.getLogger(__file__)
@@ -45,6 +45,17 @@ class Package:
 
     def __repr__(self) -> str:
         return f'Package{tuple(self)}'
+
+    def __str__(self) -> str:
+        return f'Package(len={len(self)}, contains={self.type_names})'
+
+    @property
+    def types(self) -> set[int]:
+        return {e.type for e in self._events if e.type != EV_SYN}
+
+    @property
+    def type_names(self) -> set[str]:
+        return {str(EV[t]) for t in self.types}
 
     def append(self, e: Event) -> None:
         if e.type in self._skip_list:
