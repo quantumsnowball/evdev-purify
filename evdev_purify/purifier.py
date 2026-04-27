@@ -4,7 +4,7 @@ from typing import Iterator
 
 import pyudev
 from evdev import InputDevice
-from evdev.ecodes import EV_SYN
+from evdev.ecodes import EV_ABS, EV_FF, EV_SYN
 
 from evdev_purify.package import Event, Package
 
@@ -28,23 +28,24 @@ class Purifier(ABC):
                 try:
                     if item.device_node is not None:
                         dev = InputDevice(item.device_node)
-                        if dev.name == self._name:
-                            logger.info(f'Found existing device: {self._name}')
+                        caps = dev.capabilities()
+                        if dev.name == self._name and EV_ABS in caps and EV_FF in caps:
+                            logger.info(f'Found existing device: {self._name} at {item.device_node}')
                             return dev
                 except Exception:
                     continue
             # then block until any device is added, and check if this is the targeted device
-            try:
-                logger.info(f'Waiting for device: {self._name}')
-                for item in iter(monitor.poll, None):
+            logger.info(f'Waiting for device: {self._name}')
+            for item in iter(monitor.poll, None):
+                try:
                     if item.device_node is not None and item.action == 'add':
                         dev = InputDevice(item.device_node)
-                        if dev.name == self._name:
-                            logger.info(f'Found newly added device: {self._name}')
+                        caps = dev.capabilities()
+                        if dev.name == self._name and EV_ABS in caps and EV_FF in caps:
+                            logger.info(f'Found newly added device: {self._name} at {item.device_node}')
                             return dev
-            except Exception as e:
-                logger.error(e)
-                continue
+                except Exception:
+                    continue
 
     @property
     def _packages(self) -> Iterator[Package]:

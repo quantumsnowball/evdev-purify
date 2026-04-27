@@ -53,22 +53,29 @@ class Purifier(Base):
 
     def run(self) -> None:
         logger.info(f'Starting Purifier ...')
+        # retry loop
+        while True:
+            try:
+                # intercept all src events and process them
+                for p in self._packages:
+                    # skip and log multiple events packages
+                    if len(p) > 1:
+                        # only log very high event count package for debug purpose
+                        if len(p) >= self._log_threshold:
+                            logger.info(f'BIG: {p}')
+                        # skip to next
+                        continue
 
-        # intercept all src events and process them
-        for p in self._packages:
-            # skip and log multiple events packages
-            if len(p) > 1:
-                # only log very high event count package for debug purpose
-                if len(p) >= self._log_threshold:
-                    logger.info(f'BIG: {p}')
-                # skip to next
+                    # only interested in single event key-press package
+                    if p.types == {EV_KEY, }:
+                        # check new code from map
+                        if (new_code := KEYMAPS[p[0].code]) is not None:
+                            # replace if new code is defined
+                            p[0].code = new_code
+                            # then send the code to new device
+                            p.send(self._dst_dev)
+            except OSError:
+                logger.info('Device disconnected, retrying ...')
+            except Exception as e:
+                logger.error(e)
                 continue
-
-            # only interested in single event key-press package
-            if p.types == {EV_KEY, }:
-                # check new code from map
-                if (new_code := KEYMAPS[p[0].code]) is not None:
-                    # replace if new code is defined
-                    p[0].code = new_code
-                    # then send the code to new device
-                    p.send(self._dst_dev)
