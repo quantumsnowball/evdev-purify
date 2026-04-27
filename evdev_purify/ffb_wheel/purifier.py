@@ -41,8 +41,14 @@ KEYMAPS = {
 
 
 class Purifier(Base):
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        *,
+        log_threshold: int,
+    ) -> None:
         super().__init__(name)
+        self._log_threshold = log_threshold
         self._dst_dev = UInput(name=f'Purifier: {name}')
 
     def run(self) -> None:
@@ -53,7 +59,7 @@ class Purifier(Base):
             # skip and log multiple events packages
             if len(p) > 1:
                 # only log very high event count package for debug purpose
-                if len(p) > 4:
+                if len(p) >= self._log_threshold:
                     logger.info(f'BIG: {p}')
                 # skip to next
                 continue
