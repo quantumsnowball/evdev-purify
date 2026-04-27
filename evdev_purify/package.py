@@ -16,6 +16,11 @@ class Event:
         self.old_value = event.value
         self.timestamp = event.timestamp()
 
+    def __repr__(self) -> str:
+        type_name = EV[self.type]
+        code_name = bytype[self.type][self.code]
+        return f'Event({type_name}, {code_name}, {self.value})'
+
     @property
     def is_modified(self) -> bool:
         return self.value != self.old_value
@@ -34,6 +39,9 @@ class Package:
 
     def __iter__(self) -> Iterator[Event]:
         yield from self._events
+
+    def __repr__(self) -> str:
+        return f'Package{tuple(self)}'
 
     def append(self, e: Event) -> None:
         if e.type in self._skip_list:
