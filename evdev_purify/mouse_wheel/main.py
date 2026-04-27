@@ -22,7 +22,10 @@ def mouse_wheel(
     debug: Annotated[bool, Option(help='Enable debug mode verbose output')] = False,
 ) -> None:
     # logger
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO, format='%(levelname)s: %(message)s')
+    logging.basicConfig(
+        level=logging.DEBUG if debug else logging.INFO,
+        format='%(levelname)s [%(filename)s:%(lineno)d] %(message)s' if debug else '%(message)s',
+    )
 
     # device
     purifier = Purifier(

@@ -12,6 +12,7 @@ authors = [
 dependencies = [
     "typer",
     "evdev",
+    "pyudev",
 ]
 requires-python = ">=3.14.4"
 
@@ -24,6 +25,10 @@ evdev-purify = "evdev_purify:app"
 [tool.pyright]
 venvPath = "./"
 venv = ".venv"
+
+[[tool.mypy.overrides]]
+module = "pyudev.*"
+ignore_missing_imports = true
 
 [tool.ruff.lint]
 # Q = flake8-quotes (surgical string fixing)
