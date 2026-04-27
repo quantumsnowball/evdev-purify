@@ -35,7 +35,8 @@ class Package:
         self._events = list[Event]()
 
     def __len__(self) -> int:
-        return len(self._events)
+        # len count exclude SYN event
+        return len(self._events[:-1])
 
     def __getitem__(self, key) -> Event:
         return self._events[key]
