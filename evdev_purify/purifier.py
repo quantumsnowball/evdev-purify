@@ -4,7 +4,7 @@ from typing import Iterator
 
 import pyudev
 from evdev import InputDevice
-from evdev.ecodes import EV_ABS, EV_FF, EV_SYN
+from evdev.ecodes import EV_SYN
 
 from evdev_purify.package import Event, Package
 
@@ -14,9 +14,9 @@ logger = logging.getLogger(__file__)
 class Purifier(ABC):
     def __init__(self, name: str) -> None:
         self._name = name
+        self._src_dev_instance: InputDevice | None = None
 
-    @property
-    def _src_dev(self) -> InputDevice:
+    def _src_dev_lookup(self) -> InputDevice:
         context = pyudev.Context()
         monitor = pyudev.Monitor.from_netlink(context)
         monitor.filter_by(subsystem='input')
@@ -46,14 +46,39 @@ class Purifier(ABC):
                     continue
 
     @property
+    def _src_dev(self) -> InputDevice:
+        try:
+            # ensure instance exists
+            assert self._src_dev_instance is not None
+            # test the fd
+            _ = self._src_dev_instance.fd
+        except Exception:
+            # failed the test, lookup again
+            self._src_dev_instance = self._src_dev_lookup()
+        # return the cached instance
+        return self._src_dev_instance
+
+    @_src_dev.setter
+    def _src_dev(self, val: InputDevice | None) -> None:
+        self._src_dev_instance = val
+
+    @property
     def _packages(self) -> Iterator[Package]:
-        package = Package()
-        for e in self._src_dev.read_loop():
-            # append as custom Event type
-            package.append(Event(e))
-            if e.type == EV_SYN:
-                yield package
-                package = Package()
+        try:
+            package = Package()
+            for e in self._src_dev.read_loop():
+                # append as custom Event type
+                package.append(Event(e))
+                if e.type == EV_SYN:
+                    yield package
+                    package = Package()
+        except OSError:
+            logger.info('Event loop failed, resetting device...')
+        except Exception as e:
+            logger.error(e)
+        finally:
+            # if read_loop() ever quit, reset src dev to force lookup again in next retry
+            self._src_dev = None
 
     @abstractmethod
     def _is_targeted_device(self, dev: InputDevice) -> bool:

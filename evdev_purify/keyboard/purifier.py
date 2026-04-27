@@ -59,4 +59,3 @@ class Purifier(Base):
                 logger.info('Device disconnected, retrying ...')
             except Exception as e:
                 logger.error(e)
-                continue
