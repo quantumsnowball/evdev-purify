@@ -10,30 +10,30 @@ logger = logging.getLogger(__file__)
 
 KEYMAPS = {
     # L1
-    292: ec.KEY_Z,
+    292: ec.KEY_Q,
     # R1
-    293: ec.KEY_X,
+    293: ec.KEY_E,
 
     # X
-    290: None,
+    290: ec.KEY_F,
     # Y
-    291: None,
+    291: ec.KEY_G,
     # A
     288: ec.KEY_ENTER,
     # B
     289: ec.KEY_ESC,
 
     # L3
-    298: None,
+    298: ec.KEY_Z,
     # R3
-    299: None,
+    299: ec.KEY_X,
 
     # Task
     296: ec.KEY_C,
     # Function
-    301: ec.KEY_L,
+    301: ec.KEY_V,
     # Menu
-    297: None,
+    297: ec.KEY_B,
 
     # Home
     300: ec.KEY_H,
