@@ -21,7 +21,7 @@ class Purifier(Base):
             name=f'Purifier: {name}',
             filtered_types=(EV_SYN, ),
         )
-        self._ffb_effect_manager = FFBEffectManager(self._src_dev, self._dst_dev)
+        self._ffb_effect_manager = FFBEffectManager(self, self._dst_dev)
 
     def _is_targeted_device(self, dev: InputDevice) -> bool:
         caps = dev.capabilities()

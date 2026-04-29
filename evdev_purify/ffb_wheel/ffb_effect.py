@@ -1,5 +1,6 @@
 import logging
 import threading
+from typing import Protocol
 
 from evdev import InputDevice, UInput
 from evdev.ecodes import EV_FF, EV_UINPUT, UI_FF_ERASE, UI_FF_UPLOAD
@@ -7,17 +8,27 @@ from evdev.ecodes import EV_FF, EV_UINPUT, UI_FF_ERASE, UI_FF_UPLOAD
 logger = logging.getLogger(__file__)
 
 
+class Purifier(Protocol):
+    @property
+    def _src_dev(self) -> InputDevice:
+        ...
+
+
 class FFBEffectManager:
     def __init__(
         self,
-        src_dev: InputDevice,
+        purifier: Purifier,
         dst_dev: UInput,
     ) -> None:
-        self._src_dev = src_dev
+        self._purifier = purifier
         self._dst_dev = dst_dev
         self._effects = set[int]()
         self._thread = threading.Thread(target=self._worker, daemon=True)
         self._thread.start()
+
+    @property
+    def _src_dev(self) -> InputDevice:
+        return self._purifier._src_dev
 
     def _worker(self) -> None:
         logger.info('ffb effect manager starting monitoring game effect events ...')
