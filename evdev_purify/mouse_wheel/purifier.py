@@ -90,13 +90,14 @@ class Purifier(Base):
         # small delay befoe grab, avoid command Enter release being capped
         # NOTE: please press enter key quickly
         time.sleep(0.5)
-        # intercept all src events
-        logger.info(f'Grabbed {self._name}')
-        self._src_dev.grab()
 
         # retry loop
         while True:
             try:
+                # intercept all src events
+                self._src_dev.grab()
+                logger.info(f'Grabbed {self._name}')
+
                 # then process all src events
                 for p in self._packages:
                     # use the first event as to classify package
