@@ -3,6 +3,8 @@ from typing import Annotated
 
 from typer import Argument, Option, Typer
 
+from .purifier import Purifier
+
 app = Typer()
 
 logger = logging.getLogger(__file__)
@@ -23,7 +25,12 @@ def ffb_wheel(
     )
 
     # device
+    purifier = Purifier(
+        name,
+    )
 
     # run
-
-    logger.info(f'Should grab the device {name=} and purifier it or even remap its events')
+    try:
+        purifier.run()
+    except KeyboardInterrupt:
+        logger.info('\nPurifier Stopped by user.')
