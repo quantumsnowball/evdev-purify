@@ -5,6 +5,8 @@ from evdev.ecodes import EV_ABS, EV_FF, EV_SYN
 
 from evdev_purify.purifier import Purifier as Base
 
+from .ffb_effect import FFBEffectManager
+
 logger = logging.getLogger(__file__)
 
 
@@ -19,6 +21,7 @@ class Purifier(Base):
             name=f'Purifier: {name}',
             filtered_types=(EV_SYN, ),
         )
+        self._ffb_effect_manager = FFBEffectManager(self._src_dev, self._dst_dev)
 
     def _is_targeted_device(self, dev: InputDevice) -> bool:
         caps = dev.capabilities()
