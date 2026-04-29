@@ -12,9 +12,9 @@ logger = logging.getLogger(__file__)
 
 @app.command(
     no_args_is_help=True,
-    help='ffb-wheel event purifier',
+    help='ffb-wheel event purifier, output to companion keyboard',
 )
-def ffb_wheel(
+def ffb_wheel_companion(
     name: Annotated[str, Argument(help='The device name from evtest')],
     log_threshold: Annotated[int, Option(help='Package size threshold for logging large packages')] = 5,
     debug: Annotated[bool, Option(help='Enable debug mode verbose output')] = False,
