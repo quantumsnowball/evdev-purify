@@ -1,19 +1,14 @@
-# /// script
-# dependencies = [
-#   "typer",
-#   "evdev",
-# ]
-# ///
 import logging
-import threading
 import time
 from collections import deque
 
-from evdev import UInput
+from evdev import InputDevice, UInput
 from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
 
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
+
+from .scheduler import Scheduler
 
 logger = logging.getLogger(__file__)
 
@@ -28,11 +23,11 @@ class WheelBuffer:
         max_event_interval: float,
     ) -> None:
         self._dst_dev = dst_dev
-        self._delay = delay
         self._history = deque[Package]()
         self._last_timestamp = 0.0
         self._min_history_len = min_history_len
         self._max_event_interval = max_event_interval
+        self._scheduler = Scheduler(delay=delay)
 
     def _fire(self) -> None:
         # pop value
@@ -50,8 +45,7 @@ class WheelBuffer:
         interval = e.timestamp - self._last_timestamp
         self._last_timestamp = e.timestamp
         if interval < self._max_event_interval:
-            t = threading.Timer(self._delay, lambda: logger.info('     X     '))
-            t.start()
+            self._scheduler.add_task(lambda: logger.info('     X     '))
             return
         # follow vote if already have enough history
         if len(self._history) > self._min_history_len:
@@ -66,9 +60,8 @@ class WheelBuffer:
                     # print(f'{sign=} {e.value=} {e.old_value=}')
         # append the event to history
         self._history.append(package)
-        # timer schedule the event
-        t = threading.Timer(self._delay, self._fire)
-        t.start()
+        # schedule the event
+        self._scheduler.add_task(self._fire)
 
 
 class Purifier(Base):
@@ -80,7 +73,8 @@ class Purifier(Base):
         min_history_len: int,
         max_event_interval: float,
     ) -> None:
-        super().__init__(name, max_event_interval=max_event_interval)
+        super().__init__(name)
+        self._dst_dev = UInput.from_device(self._src_dev, name=f'Purifier: {name}')
         self._wheel_buffer = WheelBuffer(
             self._dst_dev,
             delay=delay,
@@ -88,25 +82,35 @@ class Purifier(Base):
             max_event_interval=max_event_interval,
         )
 
+    def _is_targeted_device(self, dev: InputDevice) -> bool:
+        return dev.name == self._name
+
     def run(self) -> None:
-        logger.info(f'Starting Purifier on {self._src_dev_path} ...')
+        logger.info(f'Starting Purifier ...')
         # small delay befoe grab, avoid command Enter release being capped
         # NOTE: please press enter key quickly
         time.sleep(0.5)
         # intercept all src events
-        logger.info(f'Grabbed {self._src_dev_path}')
+        logger.info(f'Grabbed {self._name}')
         self._src_dev.grab()
 
-        # then process all src events
-        for p in self._packages:
-            # use the first event as to classify package
-            e = p[0]
-            # filter out wheel scroll relevant events
-            if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
-                self._wheel_buffer.append(p)
-                # debug
-                # print(f"src_dev: {' |-' if e.value > 0 else '-| '}")
-                continue
+        # retry loop
+        while True:
+            try:
+                # then process all src events
+                for p in self._packages:
+                    # use the first event as to classify package
+                    e = p[0]
+                    # filter out wheel scroll relevant events
+                    if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
+                        self._wheel_buffer.append(p)
+                        # debug
+                        # print(f"src_dev: {' |-' if e.value > 0 else '-| '}")
+                        continue
 
-            # passthrough all other irrelevant events
-            p.send(self._dst_dev)
+                    # passthrough all other irrelevant events
+                    p.send(self._dst_dev)
+            except OSError:
+                logger.info('Device disconnected, retrying ...')
+            except Exception as e:
+                logger.error(e)

@@ -2,6 +2,7 @@ import importlib.metadata as meta
 
 from typer import Typer
 
+from .ffb_wheel_companion import app as ffb_wheel_companion
 from .keyboard import app as keyboard
 from .mouse_wheel import app as mouse_wheel
 
@@ -22,3 +23,4 @@ def version() -> None:
 
 app.add_typer(keyboard)
 app.add_typer(mouse_wheel)
+app.add_typer(ffb_wheel_companion)
