@@ -30,6 +30,21 @@ class Purifier(Base):
 
     def run(self) -> None:
         logger.info(f'Starting Purifier ...')
-        logger.info(f'{self._src_dev.capabilities()}')
-        logger.info(f'{self._dst_dev.capabilities()}')
-        logger.info(f'TODO: should start the loop(s)')
+
+        # retry loop
+        while True:
+            try:
+                # intercept all src events
+                self._src_dev.grab()
+                logger.info(f'Grabbed {self._name}')
+
+                # then process all src events
+                for p in self._packages:
+                    # TODO: filtering and remapping here
+
+                    # passthrough all other irrelevant events
+                    p.send(self._dst_dev)
+            except OSError:
+                logger.info('Device disconnected, retrying ...')
+            except Exception as e:
+                logger.error(e)
