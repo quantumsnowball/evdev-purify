@@ -19,9 +19,18 @@ class Event:
         self.timestamp = event.timestamp()
 
     def __repr__(self) -> str:
-        type_name = EV[self.type]
-        code_name = bytype[self.type][self.code]
+        try:
+            type_name = EV[self.type]
+        except Exception:
+            type_name = str(self.type)
+        try:
+            code_name = bytype[self.type][self.code]
+        except Exception:
+            code_name = str(self.code)
         return f'Event({type_name}, {code_name}, {self.value})'
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
     @property
     def is_modified(self) -> bool:
@@ -68,8 +77,17 @@ class Package:
 
     def send(self, dev: VirtualDevice) -> None:
         for e in self._events:
+            # write
             dev.write(e.type, e.code, e.value)
+
+            # log
+            dt = datetime.fromtimestamp(e.timestamp).isoformat(timespec='milliseconds').replace('T', '_')
             try:
-                logger.debug(f'SENT: {e.timestamp}, {EV[e.type]}, {bytype[e.type][e.code]}, {e.value=}')
+                type_name = EV[e.type]
             except Exception:
-                logger.debug(f'SENT: {e.timestamp}, {e.type=}, {e.code=}, {e.value=}')
+                type_name = str(e.type)
+            try:
+                code_name = bytype[e.type][e.code]
+            except Exception:
+                code_name = str(e.code)
+            logger.debug(f'SENT: {dt}, {type_name}, {code_name}, {e.value=}')
