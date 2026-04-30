@@ -73,7 +73,7 @@ class Purifier(ABC):
                     yield package
                     package = Package()
         except OSError:
-            logger.info('Event loop failed, resetting device...')
+            logger.info('Disconnected: RealDevice(xxx)')
         except Exception as e:
             logger.error(e)
         finally:
