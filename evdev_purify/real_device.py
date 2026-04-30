@@ -12,18 +12,32 @@ logger = logging.getLogger(__file__)
 
 class RealDevice(InputDevice):
     @override
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, grab: bool, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        self._grab = grab
         logger.info(f'Created: {str(self)}')
 
     def __str__(self):
-        return f"RealDevice('{self.device.path}', name='{self.device.name}')"
+        return f"RealDevice('{self.path}', name='{self.name}')"
 
     def __enter__(self) -> Self:
+        if self._grab:
+            try:
+                self.grab()
+                logger.info(f'Grabbed {str(self)}')
+            except OSError as e:
+                logger.error(f'Failed to grab {str(self)}')
+                raise e
         return self
 
     def __exit__(self, *_) -> None:
-        pass
+        if self._grab:
+            try:
+                self.ungrab()
+                logger.info(f'Ungrabbed {str(self)}')
+            except OSError as e:
+                logger.error(f'Failed to ungrab {str(self)}')
+                raise e
 
     @property
     def packages(self) -> Iterator[Package]:
@@ -44,7 +58,9 @@ class RealDevice(InputDevice):
     def find_or_wait_for(
         cls,
         name: str,
-        is_targeted_device: Callable[[Self], bool]
+        is_targeted_device: Callable[[Self], bool],
+        *,
+        grab: bool,
     ) -> Self:
         context = pyudev.Context()
         monitor = pyudev.Monitor.from_netlink(context)
@@ -56,10 +72,10 @@ class RealDevice(InputDevice):
             for item in context.list_devices(subsystem='input'):
                 try:
                     if item.device_node is not None:
-                        dev = cls(item.device_node)
+                        dev = InputDevice(item.device_node)
                         if is_targeted_device(dev):
                             logger.info(f'Found existing device: {name} at {item.device_node}')
-                            return dev
+                            return cls(item.device_node, grab=grab)
                 except Exception:
                     continue
             # then block until any device is added, and check if this is the targeted device
@@ -67,9 +83,9 @@ class RealDevice(InputDevice):
             for item in iter(monitor.poll, None):
                 try:
                     if item.device_node is not None and item.action == 'add':
-                        dev = cls(item.device_node)
+                        dev = InputDevice(item.device_node)
                         if is_targeted_device(dev):
                             logger.info(f'Found newly added device: {name} at {item.device_node}')
-                            return dev
+                            return cls(item.device_node, grab=grab)
                 except Exception:
                     continue
