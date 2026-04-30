@@ -4,9 +4,10 @@ from evdev import InputDevice
 from evdev import ecodes as ec
 from evdev.ecodes import EV_ABS, EV_FF, EV_KEY
 
-from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
+from evdev_purify.virtual_device import VirtualDevice
 
 logger = logging.getLogger(__file__)
 
@@ -52,7 +53,10 @@ class Purifier(Base):
         super().__init__(name)
         self._log_threshold = log_threshold
 
-    def _is_targeted_device(self, dev: InputDevice) -> bool:
+    def _is_target(self, path: str | None) -> bool:
+        if path is None:
+            return False
+        dev = InputDevice(path)
         caps = dev.capabilities()
         return (
             dev.name == self._name and
@@ -65,9 +69,12 @@ class Purifier(Base):
         oserror_message='Device disconnected, retrying ...',
     )
     def run(self) -> None:
-        with VirtualDevice(name=f'Purifier: {self._name}') as dst_dev:
+        with (
+            RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
+            VirtualDevice(name=f'Purifier: {self._name}') as virtual_dev,
+        ):
             # intercept all src events and process them
-            for p in self._packages:
+            for p in real_dev.packages:
                 # skip and log multiple events packages
                 if len(p) > 1:
                     # only log very high event count package for debug purpose
@@ -83,4 +90,4 @@ class Purifier(Base):
                         # replace if new code is defined
                         p[0].code = new_code
                         # then send the code to new device
-                        p.send(dst_dev)
+                        p.send(virtual_dev)
