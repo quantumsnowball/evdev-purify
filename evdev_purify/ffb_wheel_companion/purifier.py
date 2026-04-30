@@ -6,6 +6,7 @@ from evdev.ecodes import EV_ABS, EV_FF, EV_KEY
 
 from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 
 logger = logging.getLogger(__file__)
@@ -65,9 +66,12 @@ class Purifier(Base):
         oserror_message='Device disconnected, retrying ...',
     )
     def run(self) -> None:
-        with VirtualDevice(name=f'Purifier: {self._name}') as dst_dev:
+        with (
+            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=False) as src_dev,
+            VirtualDevice(name=f'Purifier: {self._name}') as dst_dev,
+        ):
             # intercept all src events and process them
-            for p in self._packages:
+            for p in src_dev.packages:
                 # skip and log multiple events packages
                 if len(p) > 1:
                     # only log very high event count package for debug purpose
