@@ -75,13 +75,9 @@ class Purifier(Base):
         max_event_interval: float,
     ) -> None:
         super().__init__(name)
-        self._dst_dev = VirtualDevice.from_device(self._src_dev, name=f'Purifier: {name}')
-        self._wheel_buffer = WheelBuffer(
-            self._dst_dev,
-            delay=delay,
-            min_history_len=min_history_len,
-            max_event_interval=max_event_interval,
-        )
+        self._delay = delay
+        self._min_history_len = min_history_len
+        self._max_event_interval = max_event_interval
 
     def _is_targeted_device(self, dev: InputDevice) -> bool:
         return dev.name == self._name
@@ -95,16 +91,24 @@ class Purifier(Base):
         # intercept all src events
         self._grab()
 
-        # then process all src events
-        for p in self._packages:
-            # use the first event as to classify package
-            e = p[0]
-            # filter out wheel scroll relevant events
-            if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
-                self._wheel_buffer.append(p)
-                # debug
-                # print(f"src_dev: {' |-' if e.value > 0 else '-| '}")
-                continue
+        with VirtualDevice.from_device(self._src_dev, name=f'Purifier: {self._name}') as dst_dev:
+            # buffer for each dst_dev created
+            wheel_buffer = WheelBuffer(
+                dst_dev,
+                delay=self._delay,
+                min_history_len=self._min_history_len,
+                max_event_interval=self._max_event_interval,
+            )
+            # then process all src events
+            for p in self._packages:
+                # use the first event as to classify package
+                e = p[0]
+                # filter out wheel scroll relevant events
+                if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
+                    wheel_buffer.append(p)
+                    # debug
+                    # print(f"src_dev: {' |-' if e.value > 0 else '-| '}")
+                    continue
 
-            # passthrough all other irrelevant events
-            p.send(self._dst_dev)
+                # passthrough all other irrelevant events
+                p.send(dst_dev)
