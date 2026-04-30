@@ -5,7 +5,7 @@ from typing import Iterator
 from evdev.ecodes import EV, EV_MSC, EV_SYN, bytype
 from evdev.events import InputEvent
 
-from .device import VirtualDevice
+from .virtual_device import VirtualDevice
 
 logger = logging.getLogger(__file__)
 

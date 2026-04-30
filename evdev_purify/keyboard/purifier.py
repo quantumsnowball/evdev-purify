@@ -4,10 +4,10 @@ from collections import defaultdict
 from evdev import InputDevice
 from evdev.ecodes import EV, EV_SYN, bytype
 
-from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
+from evdev_purify.virtual_device import VirtualDevice
 
 logger = logging.getLogger(__file__)
 

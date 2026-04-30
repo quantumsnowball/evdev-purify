@@ -4,11 +4,11 @@ from collections import deque
 from evdev import InputDevice
 from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
 
-from evdev_purify.device import VirtualDevice
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
+from evdev_purify.virtual_device import VirtualDevice
 
 from .scheduler import Scheduler
 

@@ -4,8 +4,8 @@ from typing import Self
 
 from evdev.ecodes import EV_FF, EV_UINPUT, UI_FF_ERASE, UI_FF_UPLOAD
 
-from evdev_purify.device import VirtualDevice
 from evdev_purify.real_device import RealDevice
+from evdev_purify.virtual_device import VirtualDevice
 
 logger = logging.getLogger(__file__)
 

@@ -36,7 +36,6 @@ class RealDevice(InputDevice):
                 self.ungrab()
                 logger.info(f'Ungrabbed {str(self)}')
             except OSError as e:
-                logger.error(f'Failed to ungrab {str(self)}')
                 raise e
 
     @property
