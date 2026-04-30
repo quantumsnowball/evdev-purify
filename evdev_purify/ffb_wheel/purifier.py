@@ -1,8 +1,9 @@
 import logging
 
-from evdev import InputDevice, UInput
+from evdev import InputDevice
 from evdev.ecodes import EV_ABS, EV_FF, EV_SYN
 
+from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.retry import retry_loop
 
@@ -17,7 +18,7 @@ class Purifier(Base):
         name: str,
     ) -> None:
         super().__init__(name)
-        self._dst_dev = UInput.from_device(
+        self._dst_dev = VirtualDevice.from_device(
             self._src_dev,
             name=f'Purifier: {name}',
             filtered_types=(EV_SYN, ),

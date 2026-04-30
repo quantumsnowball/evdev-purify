@@ -1,9 +1,10 @@
 import logging
 from collections import defaultdict
 
-from evdev import InputDevice, UInput
+from evdev import InputDevice
 from evdev.ecodes import EV, EV_SYN, bytype
 
+from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.retry import retry_loop
 
@@ -18,7 +19,7 @@ class Purifier(Base):
         max_event_interval: float,
     ) -> None:
         super().__init__(name)
-        self._dst_dev = UInput.from_device(self._src_dev, name=f'Purifier: {name}')
+        self._dst_dev = VirtualDevice.from_device(self._src_dev, name=f'Purifier: {name}')
         self._max_event_interval = max_event_interval
         self._last_timestamp: dict[int, dict[int, float]] = defaultdict(lambda: defaultdict(float))
 

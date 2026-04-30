@@ -1,9 +1,10 @@
 import logging
 from collections import deque
 
-from evdev import InputDevice, UInput
+from evdev import InputDevice
 from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
 
+from evdev_purify.device import VirtualDevice
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.retry import retry_loop
@@ -16,7 +17,7 @@ logger = logging.getLogger(__file__)
 class WheelBuffer:
     def __init__(
         self,
-        dst_dev: UInput,
+        dst_dev: VirtualDevice,
         *,
         delay: float,
         min_history_len: int,
@@ -74,7 +75,7 @@ class Purifier(Base):
         max_event_interval: float,
     ) -> None:
         super().__init__(name)
-        self._dst_dev = UInput.from_device(self._src_dev, name=f'Purifier: {name}')
+        self._dst_dev = VirtualDevice.from_device(self._src_dev, name=f'Purifier: {name}')
         self._wheel_buffer = WheelBuffer(
             self._dst_dev,
             delay=delay,

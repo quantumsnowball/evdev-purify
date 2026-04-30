@@ -2,9 +2,10 @@ import logging
 import threading
 from typing import Protocol
 
-from evdev import InputDevice, UInput
+from evdev import InputDevice
 from evdev.ecodes import EV_FF, EV_UINPUT, UI_FF_ERASE, UI_FF_UPLOAD
 
+from evdev_purify.device import VirtualDevice
 from evdev_purify.retry import retry_loop
 
 logger = logging.getLogger(__file__)
@@ -20,7 +21,7 @@ class FFBEffectManager:
     def __init__(
         self,
         purifier: Purifier,
-        dst_dev: UInput,
+        dst_dev: VirtualDevice,
     ) -> None:
         self._purifier = purifier
         self._dst_dev = dst_dev

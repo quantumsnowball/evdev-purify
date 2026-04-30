@@ -2,9 +2,10 @@ import logging
 from datetime import datetime
 from typing import Iterator
 
-from evdev import UInput
 from evdev.ecodes import EV, EV_MSC, EV_SYN, bytype
 from evdev.events import InputEvent
+
+from .device import VirtualDevice
 
 logger = logging.getLogger(__file__)
 
@@ -65,7 +66,7 @@ class Package:
             return
         self._events.append(e)
 
-    def send(self, dev: UInput) -> None:
+    def send(self, dev: VirtualDevice) -> None:
         for e in self._events:
             dev.write(e.type, e.code, e.value)
             try:

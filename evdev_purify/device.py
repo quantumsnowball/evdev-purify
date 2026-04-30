@@ -1,9 +1,10 @@
 import logging
 import os
 import select
-from typing import Iterator
+from typing import Iterator, Self, override
 
-from evdev import InputEvent, UInput
+from evdev import InputDevice, InputEvent, UInput
+from evdev.ecodes import EV_FF, EV_SYN
 
 logger = logging.getLogger(__file__)
 
@@ -13,7 +14,9 @@ class VirtualDevice(UInput):
         super().__init__(*args, **kwargs)
         self._pipe_r, self._pipe_w = os.pipe()
 
-    def read_loop_stoppable(self) -> Iterator[InputEvent]:
+    @override
+    def read_loop(self) -> Iterator[InputEvent]:
+        ''' overrided version of read_loop that can receive a stop signal and return'''
         try:
             while True:
                 # this should return if any one of the files is ready
@@ -38,14 +41,30 @@ class VirtualDevice(UInput):
             except OSError:
                 pass
 
-    def stop_loop(self):
+    def stop(self):
         # Write a 'kick' byte to wake up select.select
         try:
             os.write(self._pipe_w, b'\x01')
         except OSError:
             pass
 
+    @override
     def close(self):
         # overrides UInput.close to ensure the loop stops and pipe is cleaned
-        self.stop_loop()
-        super().close()
+        self.stop()
+        self.close()
+
+    @override
+    @classmethod
+    def from_device(
+        cls,
+        *devices: InputDevice | str | bytes | os.PathLike,
+        filtered_types: tuple[int, ...] = (EV_SYN, EV_FF),
+        **kwargs,
+    ) -> Self:
+        # reuse the parent from_device logics to create a VirtualDevice instance
+        return super(VirtualDevice, cls).from_device(
+            *devices,
+            filtered_types=filtered_types,  # type: ignore
+            **kwargs
+        )

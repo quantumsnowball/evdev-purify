@@ -1,9 +1,10 @@
 import logging
 
-from evdev import InputDevice, UInput
+from evdev import InputDevice
 from evdev import ecodes as ec
 from evdev.ecodes import EV_ABS, EV_FF, EV_KEY
 
+from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.retry import retry_loop
 
@@ -50,7 +51,7 @@ class Purifier(Base):
     ) -> None:
         super().__init__(name)
         self._log_threshold = log_threshold
-        self._dst_dev = UInput(name=f'Purifier: {name}')
+        self._dst_dev = VirtualDevice(name=f'Purifier: {name}')
 
     def _is_targeted_device(self, dev: InputDevice) -> bool:
         caps = dev.capabilities()
