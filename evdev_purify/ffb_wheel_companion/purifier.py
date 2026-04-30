@@ -1,9 +1,10 @@
 import logging
 
-from evdev import InputDevice, UInput
+from evdev import InputDevice
 from evdev import ecodes as ec
 from evdev.ecodes import EV_ABS, EV_FF, EV_KEY
 
+from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.retry import retry_loop
 
@@ -50,7 +51,6 @@ class Purifier(Base):
     ) -> None:
         super().__init__(name)
         self._log_threshold = log_threshold
-        self._dst_dev = UInput(name=f'Purifier: {name}')
 
     def _is_targeted_device(self, dev: InputDevice) -> bool:
         caps = dev.capabilities()
@@ -65,21 +65,22 @@ class Purifier(Base):
         oserror_message='Device disconnected, retrying ...',
     )
     def run(self) -> None:
-        # intercept all src events and process them
-        for p in self._packages:
-            # skip and log multiple events packages
-            if len(p) > 1:
-                # only log very high event count package for debug purpose
-                if len(p) >= self._log_threshold:
-                    logger.info(f'BIG: {p}')
-                # skip to next
-                continue
+        with VirtualDevice(name=f'Purifier: {self._name}') as dst_dev:
+            # intercept all src events and process them
+            for p in self._packages:
+                # skip and log multiple events packages
+                if len(p) > 1:
+                    # only log very high event count package for debug purpose
+                    if len(p) >= self._log_threshold:
+                        logger.info(f'BIG: {p}')
+                    # skip to next
+                    continue
 
-            # only interested in single event key-press package
-            if p.types == {EV_KEY, }:
-                # check new code from map
-                if (new_code := KEYMAPS[p[0].code]) is not None:
-                    # replace if new code is defined
-                    p[0].code = new_code
-                    # then send the code to new device
-                    p.send(self._dst_dev)
+                # only interested in single event key-press package
+                if p.types == {EV_KEY, }:
+                    # check new code from map
+                    if (new_code := KEYMAPS[p[0].code]) is not None:
+                        # replace if new code is defined
+                        p[0].code = new_code
+                        # then send the code to new device
+                        p.send(dst_dev)
