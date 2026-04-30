@@ -1,4 +1,5 @@
 import logging
+import time
 
 from evdev import InputDevice, UInput
 from evdev import ecodes as ec
@@ -86,3 +87,5 @@ class Purifier(Base):
                 logger.info('Device disconnected, retrying ...')
             except Exception as e:
                 logger.error(e)
+            # retry delay
+            time.sleep(1)

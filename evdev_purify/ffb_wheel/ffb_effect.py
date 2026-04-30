@@ -1,5 +1,6 @@
 import logging
 import threading
+import time
 from typing import Protocol
 
 from evdev import InputDevice, UInput
@@ -65,3 +66,5 @@ class FFBEffectManager:
                 logger.info('Device disconnected, retrying ...')
             except Exception as e:
                 logger.error(e)
+            # retry delay
+            time.sleep(1)

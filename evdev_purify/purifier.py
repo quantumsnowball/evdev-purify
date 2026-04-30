@@ -6,7 +6,7 @@ import pyudev
 from evdev import InputDevice
 from evdev.ecodes import EV_SYN
 
-from evdev_purify.package import Event, Package
+from .package import Event, Package
 
 logger = logging.getLogger(__file__)
 
@@ -83,6 +83,14 @@ class Purifier(ABC):
     @abstractmethod
     def _is_targeted_device(self, dev: InputDevice) -> bool:
         ...
+
+    def _grab(self) -> None:
+        try:
+            self._src_dev.grab()
+            logger.info(f'Grabbed {self._src_dev.path}: {self._name}')
+        except OSError as e:
+            logger.error(f'Device busy, Failed to Grab {self._src_dev.path}: {self._name}')
+            raise e
 
     @abstractmethod
     def run(self) -> None:

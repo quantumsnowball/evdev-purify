@@ -35,8 +35,7 @@ class Purifier(Base):
         while True:
             try:
                 # intercept all src events
-                self._src_dev.grab()
-                logger.info(f'Grabbed {self._name}')
+                self._grab()
 
                 # then process all src events
                 for p in self._packages:
@@ -60,3 +59,5 @@ class Purifier(Base):
                 logger.info('Device disconnected, retrying ...')
             except Exception as e:
                 logger.error(e)
+            # retry delay
+            time.sleep(1)
