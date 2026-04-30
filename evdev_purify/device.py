@@ -52,7 +52,7 @@ class VirtualDevice(UInput):
     def close(self):
         # overrides UInput.close to ensure the loop stops and pipe is cleaned
         self.stop()
-        self.close()
+        super().close()
 
     @override
     @classmethod
