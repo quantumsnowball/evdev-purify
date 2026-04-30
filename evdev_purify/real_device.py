@@ -58,7 +58,7 @@ class RealDevice(InputDevice):
     def find_or_wait_for(
         cls,
         name: str,
-        is_targeted_device: Callable[[Self], bool],
+        is_targeted_device: Callable[[InputDevice[str]], bool],
         *,
         grab: bool,
     ) -> Self:

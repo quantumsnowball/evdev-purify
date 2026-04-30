@@ -1,35 +1,25 @@
 import logging
 import threading
-from typing import Protocol, Self
+from typing import Self
 
-from evdev import InputDevice
 from evdev.ecodes import EV_FF, EV_UINPUT, UI_FF_ERASE, UI_FF_UPLOAD
 
 from evdev_purify.device import VirtualDevice
+from evdev_purify.real_device import RealDevice
 
 logger = logging.getLogger(__file__)
-
-
-class Purifier(Protocol):
-    @property
-    def _src_dev(self) -> InputDevice:
-        ...
 
 
 class FFBEffectManager:
     def __init__(
         self,
-        purifier: Purifier,
+        src_dev: RealDevice,
         dst_dev: VirtualDevice,
     ) -> None:
-        self._purifier = purifier
+        self._src_dev = src_dev
         self._dst_dev = dst_dev
         self._effects = set[int]()
         self._thread = threading.Thread(target=self._worker, daemon=True)
-
-    @property
-    def _src_dev(self) -> InputDevice:
-        return self._purifier._src_dev
 
     def __enter__(self) -> Self:
         self._thread.start()

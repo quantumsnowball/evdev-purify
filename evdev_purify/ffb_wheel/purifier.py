@@ -5,6 +5,7 @@ from evdev.ecodes import EV_ABS, EV_FF, EV_SYN
 
 from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 
 from .ffb_effect import FFBEffectManager
@@ -32,15 +33,13 @@ class Purifier(Base):
         oserror_message='Device disconnected, retrying ...',
     )
     def run(self) -> None:
-        # intercept all src events
-        self._grab()
-
         with (
-            VirtualDevice.from_device(self._src_dev, name=f'Purifier: {self._name}', filtered_types=(EV_SYN, ),) as dst_dev,
-            FFBEffectManager(self, dst_dev),
+            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as src_dev,
+            VirtualDevice.from_device(src_dev, name=f'Purifier: {self._name}', filtered_types=(EV_SYN, ),) as dst_dev,
+            FFBEffectManager(src_dev, dst_dev),
         ):
             # then process all src events
-            for p in self._packages:
+            for p in src_dev.packages:
                 # TODO: filtering and remapping here
 
                 # passthrough all other irrelevant events
