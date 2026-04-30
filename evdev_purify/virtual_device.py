@@ -13,14 +13,14 @@ class VirtualDevice(UInput):
     @override
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        logger.info(f'Created: {str(self)}')
+        logger.info(f'Created {str(self)}')
 
     def __str__(self):
-        return f"VirtualDevice('{self.device.path}', name='{self.device.name}')"
+        return f"VirtualDevice('{self.device.path}', '{self.device.name}')"
 
     def __enter__(self) -> Self:
         self._pipe_r, self._pipe_w = os.pipe()
-        logger.info(f'VirtualDevice control pipe created, {self._pipe_r=}, {self._pipe_w=}')
+        logger.info(f'VirtualDevice pipe created, {self._pipe_r=}, {self._pipe_w=}')
         return self
 
     def __exit__(self, *_) -> None:
@@ -38,7 +38,7 @@ class VirtualDevice(UInput):
         # signal stop
         try:
             os.write(self._pipe_w, b'\x01')
-            logger.info('Stop bytes sent.')
+            logger.info('Stop bytes sent')
         except OSError:
             pass
 
@@ -58,7 +58,7 @@ class VirtualDevice(UInput):
                 elif fd == self._pipe_r:
                     # pop the signal byte from the pipe
                     os.read(self._pipe_r, 1)
-                    logger.info('VirtualDevice: Stop signal received.')
+                    logger.info('Stop signal received')
                     # break both for loop and while loop at once
                     return
 

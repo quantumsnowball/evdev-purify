@@ -80,7 +80,7 @@ class Purifier(Base):
         self._min_history_len = min_history_len
         self._max_event_interval = max_event_interval
 
-    def _is_targeted_device(self, dev: InputDevice) -> bool:
+    def _is_target(self, dev: InputDevice) -> bool:
         return dev.name == self._name
 
     @retry_loop(
@@ -90,7 +90,7 @@ class Purifier(Base):
     )
     def run(self) -> None:
         with (
-            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as real_dev,
+            RealDevice.find_or_wait_for(self._name, self._is_target, grab=True) as real_dev,
             VirtualDevice.from_device(real_dev, name=f'Purifier: {self._name}') as virtual_dev,
         ):
             # buffer for each virtual_dev created

@@ -15,10 +15,10 @@ class RealDevice(InputDevice):
     def __init__(self, *args: Any, grab: bool, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._grab = grab
-        logger.info(f'Created: {str(self)}')
+        logger.info(f'Created {str(self)}')
 
     def __str__(self):
-        return f"RealDevice('{self.path}', name='{self.name}')"
+        return f"RealDevice('{self.path}', '{self.name}')"
 
     def __enter__(self) -> Self:
         if self._grab:
@@ -57,7 +57,7 @@ class RealDevice(InputDevice):
     def find_or_wait_for(
         cls,
         name: str,
-        is_targeted_device: Callable[[InputDevice[str]], bool],
+        is_target: Callable[[InputDevice[str]], bool],
         *,
         grab: bool,
     ) -> Self:
@@ -72,7 +72,7 @@ class RealDevice(InputDevice):
                 try:
                     if item.device_node is not None:
                         dev = InputDevice(item.device_node)
-                        if is_targeted_device(dev):
+                        if is_target(dev):
                             logger.info(f'Found existing device: {name} at {item.device_node}')
                             return cls(item.device_node, grab=grab)
                 except Exception:
@@ -83,7 +83,7 @@ class RealDevice(InputDevice):
                 try:
                     if item.device_node is not None and item.action == 'add':
                         dev = InputDevice(item.device_node)
-                        if is_targeted_device(dev):
+                        if is_target(dev):
                             logger.info(f'Found newly added device: {name} at {item.device_node}')
                             return cls(item.device_node, grab=grab)
                 except Exception:

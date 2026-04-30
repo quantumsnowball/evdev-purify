@@ -11,7 +11,7 @@ class Purifier(ABC):
         self._name = name
 
     @abstractmethod
-    def _is_targeted_device(self, dev: InputDevice) -> bool:
+    def _is_target(self, dev: InputDevice) -> bool:
         ...
 
     @abstractmethod

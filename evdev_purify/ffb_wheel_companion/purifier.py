@@ -53,7 +53,7 @@ class Purifier(Base):
         super().__init__(name)
         self._log_threshold = log_threshold
 
-    def _is_targeted_device(self, dev: InputDevice) -> bool:
+    def _is_target(self, dev: InputDevice) -> bool:
         caps = dev.capabilities()
         return (
             dev.name == self._name and
@@ -67,7 +67,7 @@ class Purifier(Base):
     )
     def run(self) -> None:
         with (
-            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=False) as real_dev,
+            RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
             VirtualDevice(name=f'Purifier: {self._name}') as virtual_dev,
         ):
             # intercept all src events and process them
