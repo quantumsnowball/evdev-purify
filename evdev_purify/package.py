@@ -68,4 +68,7 @@ class Package:
     def send(self, dev: UInput) -> None:
         for e in self._events:
             dev.write(e.type, e.code, e.value)
-            logger.debug(f'SENT: {e.timestamp}, {EV[e.type]}, {bytype[e.type][e.code]}, {e.value=}')
+            try:
+                logger.debug(f'SENT: {e.timestamp}, {EV[e.type]}, {bytype[e.type][e.code]}, {e.value=}')
+            except Exception:
+                logger.debug(f'SENT: {e.timestamp}, {e.type=}, {e.code=}, {e.value=}')

@@ -27,6 +27,8 @@ effects = set()
 
 
 def ffb_worker() -> None:
+    # NOTE: this thread must start when game launch, otherwise AC will fillup the buffer
+    # of the virtual device and freeze all /dev/input and the game
     print('FFB thread started...')
     for event in virtual_dev.read_loop():
         # Handle the special uinput events
