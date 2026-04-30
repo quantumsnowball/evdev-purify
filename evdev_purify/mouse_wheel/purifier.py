@@ -1,5 +1,4 @@
 import logging
-import time
 from collections import deque
 
 from evdev import InputDevice, UInput
@@ -7,6 +6,7 @@ from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
 
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.retry import retry_loop
 
 from .scheduler import Scheduler
 
@@ -85,34 +85,25 @@ class Purifier(Base):
     def _is_targeted_device(self, dev: InputDevice) -> bool:
         return dev.name == self._name
 
+    @retry_loop(
+        welcome_message='Starting Purifier ...',
+        oserror_message='Device disconnected, retrying ...',
+        init_delay=0.5,
+    )
     def run(self) -> None:
-        logger.info(f'Starting Purifier ...')
-        # small delay befoe grab, avoid command Enter release being capped
-        # NOTE: please press enter key quickly
-        time.sleep(0.5)
+        # intercept all src events
+        self._grab()
 
-        # retry loop
-        while True:
-            try:
-                # intercept all src events
-                self._grab()
+        # then process all src events
+        for p in self._packages:
+            # use the first event as to classify package
+            e = p[0]
+            # filter out wheel scroll relevant events
+            if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
+                self._wheel_buffer.append(p)
+                # debug
+                # print(f"src_dev: {' |-' if e.value > 0 else '-| '}")
+                continue
 
-                # then process all src events
-                for p in self._packages:
-                    # use the first event as to classify package
-                    e = p[0]
-                    # filter out wheel scroll relevant events
-                    if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
-                        self._wheel_buffer.append(p)
-                        # debug
-                        # print(f"src_dev: {' |-' if e.value > 0 else '-| '}")
-                        continue
-
-                    # passthrough all other irrelevant events
-                    p.send(self._dst_dev)
-            except OSError:
-                logger.info('Device disconnected, retrying ...')
-            except Exception as e:
-                logger.error(e)
-            # retry delay
-            time.sleep(1)
+            # passthrough all other irrelevant events
+            p.send(self._dst_dev)

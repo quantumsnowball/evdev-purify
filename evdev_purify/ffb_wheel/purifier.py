@@ -1,10 +1,10 @@
 import logging
-import time
 
 from evdev import InputDevice, UInput
 from evdev.ecodes import EV_ABS, EV_FF, EV_SYN
 
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.retry import retry_loop
 
 from .ffb_effect import FFBEffectManager
 
@@ -32,24 +32,17 @@ class Purifier(Base):
             EV_FF in caps
         )
 
+    @retry_loop(
+        welcome_message='Starting Purifier ...',
+        oserror_message='Device disconnected, retrying ...',
+    )
     def run(self) -> None:
-        logger.info(f'Starting Purifier ...')
+        # intercept all src events
+        self._grab()
 
-        # retry loop
-        while True:
-            try:
-                # intercept all src events
-                self._grab()
+        # then process all src events
+        for p in self._packages:
+            # TODO: filtering and remapping here
 
-                # then process all src events
-                for p in self._packages:
-                    # TODO: filtering and remapping here
-
-                    # passthrough all other irrelevant events
-                    p.send(self._dst_dev)
-            except OSError:
-                logger.info('Device disconnected, retrying ...')
-            except Exception as e:
-                logger.error(e)
-            # retry delay
-            time.sleep(1)
+            # passthrough all other irrelevant events
+            p.send(self._dst_dev)
