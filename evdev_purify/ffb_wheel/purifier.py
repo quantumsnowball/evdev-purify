@@ -20,7 +20,10 @@ class Purifier(Base):
     ) -> None:
         super().__init__(name)
 
-    def _is_target(self, dev: InputDevice) -> bool:
+    def _is_target(self, path: str | None) -> bool:
+        if path is None:
+            return False
+        dev = InputDevice(path)
         caps = dev.capabilities()
         return (
             dev.name == self._name and

@@ -23,7 +23,10 @@ class Purifier(Base):
         self._max_event_interval = max_event_interval
         self._last_timestamp: dict[int, dict[int, float]] = defaultdict(lambda: defaultdict(float))
 
-    def _is_target(self, dev: InputDevice) -> bool:
+    def _is_target(self, path: str | None) -> bool:
+        if path is None:
+            return False
+        dev = InputDevice(path)
         return dev.name == self._name
 
     @retry_loop(

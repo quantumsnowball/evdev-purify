@@ -80,7 +80,10 @@ class Purifier(Base):
         self._min_history_len = min_history_len
         self._max_event_interval = max_event_interval
 
-    def _is_target(self, dev: InputDevice) -> bool:
+    def _is_target(self, path: str | None) -> bool:
+        if path is None:
+            return False
+        dev = InputDevice(path)
         return dev.name == self._name
 
     @retry_loop(

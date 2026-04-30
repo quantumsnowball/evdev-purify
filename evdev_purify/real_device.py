@@ -57,7 +57,7 @@ class RealDevice(InputDevice):
     def find_or_wait_for(
         cls,
         name: str,
-        is_target: Callable[[InputDevice[str]], bool],
+        is_target: Callable[[str | None], bool],
         *,
         grab: bool,
     ) -> Self:
@@ -70,21 +70,17 @@ class RealDevice(InputDevice):
             # try to find and return the device if it already connected
             for item in context.list_devices(subsystem='input'):
                 try:
-                    if item.device_node is not None:
-                        dev = InputDevice(item.device_node)
-                        if is_target(dev):
-                            logger.info(f'Found existing device: {name} at {item.device_node}')
-                            return cls(item.device_node, grab=grab)
+                    if is_target(item.device_node):
+                        logger.info(f'Found existing device: {name} at {item.device_node}')
+                        return cls(item.device_node, grab=grab)
                 except Exception:
                     continue
             # then block until any device is added, and check if this is the targeted device
             logger.info(f'Waiting for device: {name}')
             for item in iter(monitor.poll, None):
                 try:
-                    if item.device_node is not None and item.action == 'add':
-                        dev = InputDevice(item.device_node)
-                        if is_target(dev):
-                            logger.info(f'Found newly added device: {name} at {item.device_node}')
-                            return cls(item.device_node, grab=grab)
+                    if item.action == 'add' and is_target(item.device_node):
+                        logger.info(f'Found new device: {name} at {item.device_node}')
+                        return cls(item.device_node, grab=grab)
                 except Exception:
                     continue

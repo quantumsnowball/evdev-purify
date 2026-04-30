@@ -1,8 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
 
-from evdev import InputDevice
-
 logger = logging.getLogger(__file__)
 
 
@@ -11,7 +9,7 @@ class Purifier(ABC):
         self._name = name
 
     @abstractmethod
-    def _is_target(self, dev: InputDevice) -> bool:
+    def _is_target(self, path: str | None) -> bool:
         ...
 
     @abstractmethod
