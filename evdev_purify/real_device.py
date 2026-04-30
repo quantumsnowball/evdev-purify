@@ -15,7 +15,7 @@ class RealDevice(InputDevice):
     def __init__(self, *args: Any, grab: bool, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._grab = grab
-        logger.info(f'Created {str(self)}')
+        logger.info(f'Created {self}')
 
     def __str__(self):
         return f"RealDevice('{self.path}', '{self.name}')"
@@ -24,9 +24,9 @@ class RealDevice(InputDevice):
         if self._grab:
             try:
                 self.grab()
-                logger.info(f'Grabbed {str(self)}')
+                logger.info(f'Grabbed {self}')
             except OSError as e:
-                logger.error(f'Failed to grab {str(self)}')
+                logger.error(f'Failed to grab {self}')
                 raise e
         return self
 
@@ -34,7 +34,7 @@ class RealDevice(InputDevice):
         if self._grab:
             try:
                 self.ungrab()
-                logger.info(f'Ungrabbed {str(self)}')
+                logger.info(f'Ungrabbed {self}')
             except OSError as e:
                 raise e
 
@@ -49,7 +49,7 @@ class RealDevice(InputDevice):
                     yield package
                     package = Package()
         except OSError:
-            logger.info(f'Disconnected: {str(self)}')
+            logger.info(f'Disconnected {self}')
         except Exception as e:
             logger.error(e)
 
@@ -71,16 +71,16 @@ class RealDevice(InputDevice):
             for item in context.list_devices(subsystem='input'):
                 try:
                     if is_target(item.device_node):
-                        logger.info(f'Found existing device: {name} at {item.device_node}')
+                        logger.info(f"Found existing device ('{item.device_node}', '{name}')")
                         return cls(item.device_node, grab=grab)
                 except Exception:
                     continue
             # then block until any device is added, and check if this is the targeted device
-            logger.info(f'Waiting for device: {name}')
+            logger.info(f"Waiting for device '{name}'")
             for item in iter(monitor.poll, None):
                 try:
                     if item.action == 'add' and is_target(item.device_node):
-                        logger.info(f'Found new device: {name} at {item.device_node}')
+                        logger.info(f"Found new device ('{item.device_node}', '{name}')")
                         return cls(item.device_node, grab=grab)
                 except Exception:
                     continue

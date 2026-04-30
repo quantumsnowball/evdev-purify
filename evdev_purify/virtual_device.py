@@ -13,14 +13,14 @@ class VirtualDevice(UInput):
     @override
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        logger.info(f'Created {str(self)}')
+        logger.info(f'Created {self}')
 
     def __str__(self):
         return f"VirtualDevice('{self.device.path}', '{self.device.name}')"
 
     def __enter__(self) -> Self:
         self._pipe_r, self._pipe_w = os.pipe()
-        logger.info(f'VirtualDevice pipe created, {self._pipe_r=}, {self._pipe_w=}')
+        logger.info(f'os.pipe created (read={self._pipe_r}, write={self._pipe_w})')
         return self
 
     def __exit__(self, *_) -> None:
@@ -28,7 +28,7 @@ class VirtualDevice(UInput):
         try:
             os.close(self._pipe_r)
             os.close(self._pipe_w)
-            logger.info(f'VirtualDevice control pipe closed')
+            logger.info(f'os.pipe closed')
         except OSError:
             pass
         # parent close
