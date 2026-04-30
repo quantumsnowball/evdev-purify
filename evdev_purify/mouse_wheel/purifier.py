@@ -18,13 +18,13 @@ logger = logging.getLogger(__file__)
 class WheelBuffer:
     def __init__(
         self,
-        dst_dev: VirtualDevice,
+        virtual_dev: VirtualDevice,
         *,
         delay: float,
         min_history_len: int,
         max_event_interval: float,
     ) -> None:
-        self._dst_dev = dst_dev
+        self._virtual_dev = virtual_dev
         self._history = deque[Package]()
         self._last_timestamp = 0.0
         self._min_history_len = min_history_len
@@ -35,7 +35,7 @@ class WheelBuffer:
         # pop value
         package = self._history.popleft()
         # write to dst dev
-        package.send(self._dst_dev)
+        package.send(self._virtual_dev)
         # debug
         bd = '====' if package[0].is_modified else '    '
         logger.info(f"{f'     |{bd}>' if package[0].value > 0 else f'<{bd}|     '}")
@@ -90,26 +90,24 @@ class Purifier(Base):
     )
     def run(self) -> None:
         with (
-            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as src_dev,
-            VirtualDevice.from_device(src_dev, name=f'Purifier: {self._name}') as dst_dev,
+            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as real_dev,
+            VirtualDevice.from_device(real_dev, name=f'Purifier: {self._name}') as virtual_dev,
         ):
-            # buffer for each dst_dev created
+            # buffer for each virtual_dev created
             wheel_buffer = WheelBuffer(
-                dst_dev,
+                virtual_dev,
                 delay=self._delay,
                 min_history_len=self._min_history_len,
                 max_event_interval=self._max_event_interval,
             )
             # then process all src events
-            for p in src_dev.packages:
+            for p in real_dev.packages:
                 # use the first event as to classify package
                 e = p[0]
                 # filter out wheel scroll relevant events
                 if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
                     wheel_buffer.append(p)
-                    # debug
-                    # print(f"src_dev: {' |-' if e.value > 0 else '-| '}")
                     continue
 
                 # passthrough all other irrelevant events
-                p.send(dst_dev)
+                p.send(virtual_dev)

@@ -13,11 +13,11 @@ logger = logging.getLogger(__file__)
 class FFBEffectManager:
     def __init__(
         self,
-        src_dev: RealDevice,
-        dst_dev: VirtualDevice,
+        real_dev: RealDevice,
+        virtual_dev: VirtualDevice,
     ) -> None:
-        self._src_dev = src_dev
-        self._dst_dev = dst_dev
+        self._real_dev = real_dev
+        self._virtual_dev = virtual_dev
         self._effects = set[int]()
         self._thread = threading.Thread(target=self._worker, daemon=True)
 
@@ -26,16 +26,16 @@ class FFBEffectManager:
         return self
 
     def __exit__(self, *_) -> None:
-        self._dst_dev.stop()
+        self._virtual_dev.stop()
 
     def _worker(self) -> None:
         try:
-            for event in self._dst_dev.read_loop():
+            for event in self._virtual_dev.read_loop():
                 # Handle the special uinput events
                 if event.type == EV_UINPUT:
                     # ff upload
                     if event.code == UI_FF_UPLOAD:
-                        upload = self._dst_dev.begin_upload(event.value)
+                        upload = self._virtual_dev.begin_upload(event.value)
 
                         # Checks if this is a new effect
                         if upload.effect.id not in self._effects:
@@ -43,19 +43,19 @@ class FFBEffectManager:
                             # Setting id to 1 indicates that a new effect must be allocated
                             upload.effect.id = -1
 
-                        self._src_dev.upload_effect(upload.effect)
+                        self._real_dev.upload_effect(upload.effect)
                         upload.retval = 0
-                        self._dst_dev.end_upload(upload)
+                        self._virtual_dev.end_upload(upload)
                     # ff erase
                     elif event.code == UI_FF_ERASE:
-                        erase = self._dst_dev.begin_erase(event.value)
+                        erase = self._virtual_dev.begin_erase(event.value)
                         erase.retval = 0
-                        self._src_dev.erase_effect(erase.effect_id)
+                        self._real_dev.erase_effect(erase.effect_id)
                         self._effects.remove(erase.effect_id)
-                        self._dst_dev.end_erase(erase)
+                        self._virtual_dev.end_erase(erase)
                 # Forward writes to actual rumble device.
                 elif event.type == EV_FF:
-                    self._src_dev.write(event.type, event.code, event.value)
+                    self._real_dev.write(event.type, event.code, event.value)
         except OSError:
             logger.info(f'read_loop is broken, exiting loop ...')
         except Exception as e:

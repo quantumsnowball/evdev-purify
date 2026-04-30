@@ -34,13 +34,13 @@ class Purifier(Base):
     )
     def run(self) -> None:
         with (
-            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as src_dev,
-            VirtualDevice.from_device(src_dev, name=f'Purifier: {self._name}', filtered_types=(EV_SYN, ),) as dst_dev,
-            FFBEffectManager(src_dev, dst_dev),
+            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as real_dev,
+            VirtualDevice.from_device(real_dev, name=f'Purifier: {self._name}', filtered_types=(EV_SYN, ),) as virtual_dev,
+            FFBEffectManager(real_dev, virtual_dev),
         ):
             # then process all src events
-            for p in src_dev.packages:
+            for p in real_dev.packages:
                 # TODO: filtering and remapping here
 
                 # passthrough all other irrelevant events
-                p.send(dst_dev)
+                p.send(virtual_dev)

@@ -67,11 +67,11 @@ class Purifier(Base):
     )
     def run(self) -> None:
         with (
-            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=False) as src_dev,
-            VirtualDevice(name=f'Purifier: {self._name}') as dst_dev,
+            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=False) as real_dev,
+            VirtualDevice(name=f'Purifier: {self._name}') as virtual_dev,
         ):
             # intercept all src events and process them
-            for p in src_dev.packages:
+            for p in real_dev.packages:
                 # skip and log multiple events packages
                 if len(p) > 1:
                     # only log very high event count package for debug purpose
@@ -87,4 +87,4 @@ class Purifier(Base):
                         # replace if new code is defined
                         p[0].code = new_code
                         # then send the code to new device
-                        p.send(dst_dev)
+                        p.send(virtual_dev)

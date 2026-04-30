@@ -20,7 +20,6 @@ class Purifier(Base):
         max_event_interval: float,
     ) -> None:
         super().__init__(name)
-        # self._dst_dev = VirtualDevice.from_device(self._src_dev, name=f'Purifier: {name}')
         self._max_event_interval = max_event_interval
         self._last_timestamp: dict[int, dict[int, float]] = defaultdict(lambda: defaultdict(float))
 
@@ -34,11 +33,11 @@ class Purifier(Base):
     )
     def run(self) -> None:
         with (
-            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as src_dev,
-            VirtualDevice.from_device(src_dev, name=f'Purifier: {self._name}') as dst_dev,
+            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as real_dev,
+            VirtualDevice.from_device(real_dev, name=f'Purifier: {self._name}') as virtual_dev,
         ):
             # then process all src events
-            for p in src_dev.packages:
+            for p in real_dev.packages:
                 # use the first event as the comparison target
                 e = p[0]
 
@@ -54,4 +53,4 @@ class Purifier(Base):
                         continue
 
                 # passthrough all other irrelevant events
-                p.send(dst_dev)
+                p.send(virtual_dev)
