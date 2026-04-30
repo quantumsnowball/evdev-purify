@@ -17,8 +17,11 @@ class Purifier(Base):
     def __init__(
         self,
         name: str,
+        *,
+        log_threshold: int,
     ) -> None:
         super().__init__(name)
+        self._log_threshold = log_threshold
 
     def _is_target(self, path: str | None) -> bool:
         if path is None:
@@ -43,7 +46,13 @@ class Purifier(Base):
         ):
             # then process all src events
             for p in real_dev.packages:
-                # TODO: filtering and remapping here
+                # skip and log multiple events packages
+                if len(p) > 1:
+                    # only log very high event count package for debug purpose
+                    if len(p) >= self._log_threshold:
+                        logger.info(f'BIG: {p}')
+                    # skip to next
+                    continue
 
                 # passthrough all other irrelevant events
                 p.send(virtual_dev)

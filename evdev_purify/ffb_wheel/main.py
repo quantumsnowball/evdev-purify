@@ -16,6 +16,7 @@ logger = logging.getLogger(__file__)
 )
 def ffb_wheel(
     name: Annotated[str, Argument(help='The device name from evtest')],
+    log_threshold: Annotated[int, Option(help='Package size threshold for logging large packages')] = 5,
     debug: Annotated[bool, Option(help='Enable debug mode verbose output')] = False,
 ) -> None:
     # logger
@@ -27,6 +28,7 @@ def ffb_wheel(
     # device
     purifier = Purifier(
         name,
+        log_threshold=log_threshold,
     )
 
     # run
