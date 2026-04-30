@@ -6,6 +6,7 @@ from evdev.ecodes import EV, EV_SYN, bytype
 
 from evdev_purify.device import VirtualDevice
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 
 logger = logging.getLogger(__file__)
@@ -32,12 +33,12 @@ class Purifier(Base):
         init_delay=0.5,
     )
     def run(self) -> None:
-        # intercept all src events
-        self._grab()
-
-        with VirtualDevice.from_device(self._src_dev, name=f'Purifier: {self._name}') as dst_dev:
+        with (
+            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as src_dev,
+            VirtualDevice.from_device(src_dev, name=f'Purifier: {self._name}') as dst_dev,
+        ):
             # then process all src events
-            for p in self._packages:
+            for p in src_dev.packages:
                 # use the first event as the comparison target
                 e = p[0]
 

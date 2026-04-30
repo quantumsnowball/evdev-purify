@@ -7,6 +7,7 @@ from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
 from evdev_purify.device import VirtualDevice
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 
 from .scheduler import Scheduler
@@ -88,10 +89,10 @@ class Purifier(Base):
         init_delay=0.5,
     )
     def run(self) -> None:
-        # intercept all src events
-        self._grab()
-
-        with VirtualDevice.from_device(self._src_dev, name=f'Purifier: {self._name}') as dst_dev:
+        with (
+            RealDevice.find_or_wait_for(self._name, self._is_targeted_device, grab=True) as src_dev,
+            VirtualDevice.from_device(src_dev, name=f'Purifier: {self._name}') as dst_dev,
+        ):
             # buffer for each dst_dev created
             wheel_buffer = WheelBuffer(
                 dst_dev,
@@ -100,7 +101,7 @@ class Purifier(Base):
                 max_event_interval=self._max_event_interval,
             )
             # then process all src events
-            for p in self._packages:
+            for p in src_dev.packages:
                 # use the first event as to classify package
                 e = p[0]
                 # filter out wheel scroll relevant events
