@@ -37,7 +37,7 @@ class Purifier(Base):
     def run(self) -> None:
         with (
             RealDevice.find_or_wait_for(self._name, self._is_target, grab=True) as real_dev,
-            VirtualDevice.from_device(real_dev, name=f'Purifier: {self._name}') as virtual_dev,
+            VirtualDevice.from_device(real_dev, name=f'Pure: {self._name}') as virtual_dev,
         ):
             # then process all src events
             for package in real_dev.packages(drop=(EV_MSC, )):
