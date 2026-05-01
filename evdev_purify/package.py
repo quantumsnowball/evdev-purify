@@ -75,7 +75,13 @@ class Package:
 
     def drop(self, event_type: int) -> None:
         clean_events = [e for e in self._events if e.type != event_type]
-        logger.info(f'DROP: {self._events} -> {clean_events}')
+
+        def event_repr(events: list[Event]) -> str:
+            data = tuple(str(EV.get(e.type, e.type))
+                         for e in events if e.type != EV_SYN)
+            return f"({','.join(data)})"
+        logger.info(f'DROP: {event_repr(self._events)} -> {event_repr(clean_events)}')
+
         self._events = clean_events
 
     def append(self, e: Event) -> None:
