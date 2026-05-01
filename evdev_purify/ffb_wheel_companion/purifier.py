@@ -2,7 +2,7 @@ import logging
 
 from evdev import InputDevice
 from evdev import ecodes as ec
-from evdev.ecodes import EV_ABS, EV_FF, EV_KEY
+from evdev.ecodes import EV_ABS, EV_FF, EV_KEY, EV_MSC
 
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.real_device import RealDevice
@@ -74,7 +74,7 @@ class Purifier(Base):
             VirtualDevice(name=f'Purifier: {self._name}') as virtual_dev,
         ):
             # intercept all src events and process them
-            for p in real_dev.packages:
+            for p in real_dev.packages(drop=(EV_MSC, )):
                 # skip and log multiple events packages
                 if len(p) > 1:
                     # only log very high event count package for debug purpose

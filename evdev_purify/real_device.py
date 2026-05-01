@@ -38,13 +38,16 @@ class RealDevice(InputDevice):
             except OSError as e:
                 raise e
 
-    @property
-    def packages(self) -> Iterator[Package]:
+    def packages(self, *, drop: tuple[int, ...]) -> Iterator[Package]:
         try:
             package = Package()
             for e in self.read_loop():
-                # append as custom Event type
+                # skip appending event on drop list
+                if e.type in drop:
+                    continue
+                # append as an Event type
                 package.append(Event(e))
+                # yield a package on a SYN REPORT event
                 if e.type == EV_SYN:
                     yield package
                     package = Package()

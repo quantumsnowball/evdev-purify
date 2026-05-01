@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import Iterator
 
-from evdev.ecodes import EV, EV_MSC, EV_SYN, bytype
+from evdev.ecodes import EV, EV_SYN, bytype
 from evdev.events import InputEvent
 
 from .virtual_device import VirtualDevice
@@ -38,11 +38,7 @@ class Event:
 
 
 class Package:
-    def __init__(
-        self,
-        skip_list: tuple[int] = (EV_MSC,),
-    ) -> None:
-        self._skip_list = skip_list
+    def __init__(self) -> None:
         self._events = list[Event]()
 
     def __len__(self) -> int:
@@ -85,8 +81,6 @@ class Package:
         self._events = clean_events
 
     def append(self, e: Event) -> None:
-        if e.type in self._skip_list:
-            return
         self._events.append(e)
 
     def send(self, dev: VirtualDevice) -> None:

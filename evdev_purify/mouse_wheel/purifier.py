@@ -2,7 +2,7 @@ import logging
 from collections import deque
 
 from evdev import InputDevice
-from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
+from evdev.ecodes import EV_MSC, EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
 
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
@@ -104,7 +104,7 @@ class Purifier(Base):
                 max_event_interval=self._max_event_interval,
             )
             # then process all src events
-            for p in real_dev.packages:
+            for p in real_dev.packages(drop=(EV_MSC, )):
                 # use the first event as to classify package
                 e = p[0]
                 # filter out wheel scroll relevant events

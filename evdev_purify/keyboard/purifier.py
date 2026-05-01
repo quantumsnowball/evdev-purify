@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 
 from evdev import InputDevice
-from evdev.ecodes import EV, EV_SYN, bytype
+from evdev.ecodes import EV, EV_MSC, EV_SYN, bytype
 
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.real_device import RealDevice
@@ -40,7 +40,7 @@ class Purifier(Base):
             VirtualDevice.from_device(real_dev, name=f'Purifier: {self._name}') as virtual_dev,
         ):
             # then process all src events
-            for p in real_dev.packages:
+            for p in real_dev.packages(drop=(EV_MSC, )):
                 # use the first event as the comparison target
                 e = p[0]
 
