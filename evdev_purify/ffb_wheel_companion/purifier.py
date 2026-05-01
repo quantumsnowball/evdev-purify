@@ -90,4 +90,4 @@ class Purifier(Base):
                         # replace if new code is defined
                         package[0].code = new_code
                         # then send the code to new device
-                        package.send(virtual_dev)
+                        virtual_dev.send(package)

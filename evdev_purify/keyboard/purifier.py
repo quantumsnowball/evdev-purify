@@ -56,4 +56,4 @@ class Purifier(Base):
                         continue
 
                 # passthrough all other irrelevant events
-                package.send(virtual_dev)
+                virtual_dev.send(package)

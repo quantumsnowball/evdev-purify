@@ -53,4 +53,4 @@ class Purifier(Base):
                     package.drop(EV_KEY, log_threshold=self._log_threshold)
 
                 # passthrough all other irrelevant events
-                package.send(virtual_dev)
+                virtual_dev.send(package)

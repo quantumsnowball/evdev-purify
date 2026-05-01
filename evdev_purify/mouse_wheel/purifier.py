@@ -35,7 +35,7 @@ class WheelBuffer:
         # pop value
         package = self._history.popleft()
         # write to dst dev
-        package.send(self._virtual_dev)
+        self._virtual_dev.send(package)
         # debug
         bd = '====' if package[0].is_modified else '    '
         logger.info(f"{f'     |{bd}>' if package[0].value > 0 else f'<{bd}|     '}")
@@ -113,4 +113,4 @@ class Purifier(Base):
                     continue
 
                 # passthrough all other irrelevant events
-                package.send(virtual_dev)
+                virtual_dev.send(package)

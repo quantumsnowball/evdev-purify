@@ -5,8 +5,6 @@ from typing import Iterator
 from evdev.ecodes import EV, EV_SYN, bytype
 from evdev.events import InputEvent
 
-from .virtual_device import VirtualDevice
-
 logger = logging.getLogger(__file__)
 
 
@@ -90,20 +88,3 @@ class Package:
 
     def append(self, e: Event) -> None:
         self._events.append(e)
-
-    def send(self, dev: VirtualDevice) -> None:
-        for e in self._events:
-            # write
-            dev.write(e.type, e.code, e.value)
-
-            # log
-            dt = datetime.fromtimestamp(e.timestamp).isoformat(timespec='milliseconds').replace('T', '_')
-            try:
-                type_name = EV[e.type]
-            except Exception:
-                type_name = str(e.type)
-            try:
-                code_name = bytype[e.type][e.code]
-            except Exception:
-                code_name = str(e.code)
-            logger.debug(f'SENT: {dt}, {type_name}, {code_name}, {e.value=}')

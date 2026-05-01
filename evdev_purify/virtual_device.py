@@ -1,10 +1,13 @@
 import logging
 import os
 import select
+from datetime import datetime
 from typing import Any, Iterator, Self, override
 
 from evdev import InputDevice, InputEvent, UInput
-from evdev.ecodes import EV_FF, EV_SYN
+from evdev.ecodes import EV, EV_FF, EV_SYN, bytype
+
+from .package import Package
 
 logger = logging.getLogger(__file__)
 
@@ -63,6 +66,23 @@ class VirtualDevice(UInput):
                     logger.info('Stop signal received')
                     # break both for loop and while loop at once
                     return
+
+    def send(self, package: Package) -> None:
+        for e in package:
+            # write
+            self.write(e.type, e.code, e.value)
+
+            # log
+            dt = datetime.fromtimestamp(e.timestamp).isoformat(timespec='milliseconds').replace('T', '_')
+            try:
+                type_name = EV[e.type]
+            except Exception:
+                type_name = str(e.type)
+            try:
+                code_name = bytype[e.type][e.code]
+            except Exception:
+                code_name = str(e.code)
+            logger.debug(f'SENT: {dt}, {type_name}, {code_name}, {e.value=}')
 
     @override
     @classmethod
