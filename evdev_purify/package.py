@@ -11,6 +11,8 @@ logger = logging.getLogger(__file__)
 
 
 class Event:
+    __slots__ = ('type', 'code', 'value', 'old_value', 'timestamp')
+
     def __init__(self, event: InputEvent) -> None:
         self.type = event.type
         self.code = event.code
@@ -38,6 +40,8 @@ class Event:
 
 
 class Package:
+    __slots__ = ('_events',)
+
     def __init__(self) -> None:
         self._events = list[Event]()
 
