@@ -69,15 +69,19 @@ class Package:
     def count(self, event_type: int) -> int:
         return sum(1 for e in self._events if e.type == event_type)
 
-    def drop(self, event_type: int) -> None:
+    def drop(self, event_type: int, *, log_threshold: int = 1) -> None:
+        # filter as new event list
         clean_events = [e for e in self._events if e.type != event_type]
 
+        # log
         def event_repr(events: list[Event]) -> str:
-            data = tuple(str(EV.get(e.type, e.type))
-                         for e in events if e.type != EV_SYN)
+            data = tuple(str(EV.get(e.type, e.type)) for e in events if e.type != EV_SYN)
             return f"({','.join(data)})"
-        logger.info(f'DROP: {event_repr(self._events)} -> {event_repr(clean_events)}')
+        drop_count = len(self._events) - len(clean_events)
+        if drop_count >= log_threshold:
+            logger.info(f'DROP {drop_count}: {event_repr(self._events)} -> {event_repr(clean_events)}')
 
+        # replace the original list as new list
         self._events = clean_events
 
     def append(self, e: Event) -> None:

@@ -49,8 +49,8 @@ class Purifier(Base):
 
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
-                    # modify the packet, drop all the EV_KEY events, leave other event untouched
-                    package.drop(EV_KEY)
+                    # modify the packet, drop all the EV_KEY events, only log very high event count package for debug purpose
+                    package.drop(EV_KEY, log_threshold=self._log_threshold)
 
                 # passthrough all other irrelevant events
                 package.send(virtual_dev)
