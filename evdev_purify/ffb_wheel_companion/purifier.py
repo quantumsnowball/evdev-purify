@@ -73,21 +73,21 @@ class Purifier(Base):
             RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
             VirtualDevice(name=f'Purifier: {self._name}') as virtual_dev,
         ):
-            # intercept all src events and process them
-            for p in real_dev.packages(drop=(EV_MSC, )):
-                # skip and log multiple events packages
-                if len(p) > 1:
+            # look at all src events and process them
+            for package in real_dev.packages(drop=(EV_MSC, )):
+                # if a package contains more than one EV_KEY event, consider these noise
+                if package.count(EV_KEY) > 1:
                     # only log very high event count package for debug purpose
-                    if len(p) >= self._log_threshold:
-                        logger.info(f'BIG: {p}')
+                    if len(package) >= self._log_threshold:
+                        logger.info(f'BIG: {package}')
                     # skip to next
                     continue
 
                 # only interested in single event key-press package
-                if p.types == {EV_KEY, }:
+                if package.types == {EV_KEY, }:
                     # check new code from map
-                    if (new_code := KEYMAPS[p[0].code]) is not None:
+                    if (new_code := KEYMAPS[package[0].code]) is not None:
                         # replace if new code is defined
-                        p[0].code = new_code
+                        package[0].code = new_code
                         # then send the code to new device
-                        p.send(virtual_dev)
+                        package.send(virtual_dev)
