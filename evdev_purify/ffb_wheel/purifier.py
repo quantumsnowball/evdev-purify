@@ -1,7 +1,7 @@
 import logging
 
 from evdev import InputDevice
-from evdev.ecodes import EV_ABS, EV_FF, EV_SYN
+from evdev.ecodes import EV_ABS, EV_FF, EV_KEY, EV_SYN
 
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.real_device import RealDevice
@@ -45,14 +45,12 @@ class Purifier(Base):
             FFBEffectManager(real_dev, virtual_dev),
         ):
             # then process all src events
-            for p in real_dev.packages:
-                # skip and log multiple events packages
-                if len(p) > 1:
-                    # only log very high event count package for debug purpose
-                    if len(p) >= self._log_threshold:
-                        logger.info(f'BIG: {p}')
-                    # skip to next
-                    continue
+            for package in real_dev.packages:
+
+                # if a package contains more than one EV_KEY event, consider these noise
+                if package.count(EV_KEY) > 1:
+                    # modify the packet, drop all the EV_KEY events, leave other event untouched
+                    package.drop(EV_KEY)
 
                 # passthrough all other irrelevant events
-                p.send(virtual_dev)
+                package.send(virtual_dev)

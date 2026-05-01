@@ -70,6 +70,14 @@ class Package:
     def type_names(self) -> set[str]:
         return {str(EV[t]) for t in self.types}
 
+    def count(self, event_type: int) -> int:
+        return sum(1 for e in self._events if e.type == event_type)
+
+    def drop(self, event_type: int) -> None:
+        clean_events = [e for e in self._events if e.type != event_type]
+        logger.info(f'DROP: {self._events} -> {clean_events}')
+        self._events = clean_events
+
     def append(self, e: Event) -> None:
         if e.type in self._skip_list:
             return
