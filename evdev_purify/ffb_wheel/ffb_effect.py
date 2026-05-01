@@ -26,7 +26,7 @@ class FFBEffectManager:
         return self
 
     def __exit__(self, *_) -> None:
-        self._virtual_dev.stop()
+        pass
 
     def _worker(self) -> None:
         try:

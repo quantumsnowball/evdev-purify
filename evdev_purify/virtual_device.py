@@ -24,6 +24,8 @@ class VirtualDevice(UInput):
         return self
 
     def __exit__(self, *_) -> None:
+        # stop signal
+        self.stop()
         # cleanup pipes
         try:
             os.close(self._pipe_r)
