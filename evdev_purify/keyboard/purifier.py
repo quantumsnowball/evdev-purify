@@ -40,9 +40,9 @@ class Purifier(Base):
             VirtualDevice.from_device(real_dev, name=f'Purifier: {self._name}') as virtual_dev,
         ):
             # then process all src events
-            for p in real_dev.packages(drop=(EV_MSC, )):
+            for package in real_dev.packages(drop=(EV_MSC, )):
                 # use the first event as the comparison target
-                e = p[0]
+                e = package[0]
 
                 # intercept for non EV_SYN keydown event
                 if e.type != EV_SYN and e.value == 1:
@@ -56,4 +56,4 @@ class Purifier(Base):
                         continue
 
                 # passthrough all other irrelevant events
-                p.send(virtual_dev)
+                package.send(virtual_dev)

@@ -104,13 +104,13 @@ class Purifier(Base):
                 max_event_interval=self._max_event_interval,
             )
             # then process all src events
-            for p in real_dev.packages(drop=(EV_MSC, )):
+            for package in real_dev.packages(drop=(EV_MSC, )):
                 # use the first event as to classify package
-                e = p[0]
+                e = package[0]
                 # filter out wheel scroll relevant events
                 if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
-                    wheel_buffer.append(p)
+                    wheel_buffer.append(package)
                     continue
 
                 # passthrough all other irrelevant events
-                p.send(virtual_dev)
+                package.send(virtual_dev)
