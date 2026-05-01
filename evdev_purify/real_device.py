@@ -28,15 +28,28 @@ class RealDevice(InputDevice):
             except OSError as e:
                 logger.error(f'Failed to grab {self}')
                 raise e
+
+        self.delete_all_effects()
+
         return self
 
     def __exit__(self, *_) -> None:
+        self.delete_all_effects()
+
         if self._grab:
             try:
                 self.ungrab()
                 logger.info(f'Ungrabbed {self}')
             except OSError as e:
                 raise e
+
+    def delete_all_effects(self):
+        for i in range(128):
+            try:
+                self.erase_effect(i)
+            except OSError:
+                pass
+        logger.info('Deleted all FFB effects to reset state')
 
     def packages(self, *, drop: tuple[int, ...]) -> Iterator[Package]:
         try:
