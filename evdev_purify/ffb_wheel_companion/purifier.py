@@ -9,6 +9,7 @@ from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
 from .remapper import Layer, remap
+from .translator import translate
 
 logger = logging.getLogger(__file__)
 
@@ -23,6 +24,8 @@ class Purifier(Base):
         super().__init__(name)
         self._log_threshold = log_threshold
         self._layer = Layer.BASE
+        self._dpadX = 0
+        self._dpadY = 0
 
     def _is_target(self, path: str | None) -> bool:
         if path is None:
@@ -51,6 +54,9 @@ class Purifier(Base):
                     self._layer = Layer.LEFT if package[0].value >= 32768 else Layer.BASE
                 if package[0].is_R2:
                     self._layer = Layer.RIGHT if package[0].value >= 32768 else Layer.BASE
+
+                # translate dpad into custom key events and update dpad state
+                self._dpadX, self._dpadY = translate(package, dpadX=self._dpadX, dpadY=self._dpadY)
 
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
