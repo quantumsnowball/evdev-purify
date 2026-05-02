@@ -8,7 +8,7 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
-from .keymaps import Layer, remap
+from .remapper import Layer, remap
 
 logger = logging.getLogger(__file__)
 
