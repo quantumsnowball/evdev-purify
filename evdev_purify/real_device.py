@@ -5,7 +5,8 @@ import pyudev
 from evdev import InputDevice
 from evdev.ecodes import EV_SYN
 
-from .package import Event, Package
+from .event import Event
+from .package import Package
 
 logger = logging.getLogger(__file__)
 
