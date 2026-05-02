@@ -1,6 +1,7 @@
 import logging
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Iterator
+from typing import Iterator, Self
 
 from evdev.ecodes import EV, EV_SYN, bytype
 from evdev.events import InputEvent
@@ -8,15 +9,16 @@ from evdev.events import InputEvent
 logger = logging.getLogger(__file__)
 
 
+@dataclass(slots=True)
 class Event:
-    __slots__ = ('type', 'code', 'value', 'old_value', 'timestamp')
+    timestamp: float
+    type: int
+    code: int
+    value: int
+    old_value: int = field(init=False)
 
-    def __init__(self, event: InputEvent) -> None:
-        self.type = event.type
-        self.code = event.code
-        self.value = event.value
-        self.old_value = event.value
-        self.timestamp = event.timestamp()
+    def __post_init__(self) -> None:
+        self.old_value = self.value
 
     def __repr__(self) -> str:
         try:
@@ -35,6 +37,10 @@ class Event:
     @property
     def is_modified(self) -> bool:
         return self.value != self.old_value
+
+    @classmethod
+    def from_input_event(cls, e: InputEvent) -> Self:
+        return cls(e.timestamp(), e.type, e.code, e.value)
 
 
 class Package:

@@ -59,7 +59,7 @@ class RealDevice(InputDevice):
                 if e.type in drop:
                     continue
                 # append as an Event type
-                package.append(Event(e))
+                package.append(Event.from_input_event(e))
                 # yield a package on a SYN REPORT event
                 if e.type == EV_SYN:
                     yield package
