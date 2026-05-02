@@ -8,8 +8,7 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
-from . import keymaps
-from .keymaps import Layer
+from .keymaps import Layer, remap
 
 logger = logging.getLogger(__file__)
 
@@ -64,6 +63,6 @@ class Purifier(Base):
                 # only interested in single event key-press package
                 if package.count(EV_KEY) == 1:
                     # modify the package according to keymaps
-                    keymaps.update(package, layer=self._layer)
+                    remapped_package = remap(package, layer=self._layer)
                     # then send the package to new device
-                    virtual_dev.send(package)
+                    virtual_dev.send(remapped_package)

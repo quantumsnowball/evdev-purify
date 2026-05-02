@@ -7,6 +7,7 @@ from typing import Any, Iterator, Self, override
 from evdev import InputDevice, InputEvent, UInput
 from evdev.ecodes import EV, EV_FF, EV_SYN, bytype
 
+from .event import Event
 from .package import Package
 
 logger = logging.getLogger(__file__)
@@ -67,7 +68,7 @@ class VirtualDevice(UInput):
                     # break both for loop and while loop at once
                     return
 
-    def send(self, package: Package) -> None:
+    def send(self, package: Package | Iterator[Event]) -> None:
         for e in package:
             # write
             self.write(e.type, e.code, e.value)
