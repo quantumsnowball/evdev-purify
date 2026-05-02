@@ -26,6 +26,15 @@ BINDINGS: dict[BindingSource, BindingTargets] = {
     # R1, code 293
     ec.BTN_PINKIE: (ec.KEY_E, ec.KEY_W, ec.KEY_S),
 
+    # Down, code 304
+    ec.BTN_SOUTH: (ec.KEY_DOWN, None, None),
+    # Up, code 307
+    ec.BTN_NORTH: (ec.KEY_UP, None, None),
+    # Right, code 305
+    ec.BTN_EAST: (ec.KEY_RIGHT, None, None),
+    # Left, code 308
+    ec.BTN_WEST: (ec.KEY_LEFT, None, None),
+
     # X, code 290
     ec.BTN_THUMB2: (ec.KEY_F, ec.KEY_R, ec.KEY_COMMA),
     # Y, code 291
