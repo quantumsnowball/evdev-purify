@@ -41,3 +41,10 @@ class Event:
     @classmethod
     def from_input_event(cls, e: InputEvent) -> Self:
         return cls(e.type, e.code, e.value, e.timestamp())
+
+
+@dataclass(slots=True)
+class SyncEvent(Event):
+    type: int = 0
+    code: int = 0
+    value: int = 0
