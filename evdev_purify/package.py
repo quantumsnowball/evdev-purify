@@ -2,39 +2,11 @@ import logging
 from datetime import datetime
 from typing import Iterator
 
-from evdev.ecodes import EV, EV_SYN, bytype
-from evdev.events import InputEvent
+from evdev.ecodes import EV, EV_SYN
+
+from .event import Event
 
 logger = logging.getLogger(__file__)
-
-
-class Event:
-    __slots__ = ('type', 'code', 'value', 'old_value', 'timestamp')
-
-    def __init__(self, event: InputEvent) -> None:
-        self.type = event.type
-        self.code = event.code
-        self.value = event.value
-        self.old_value = event.value
-        self.timestamp = event.timestamp()
-
-    def __repr__(self) -> str:
-        try:
-            type_name = EV[self.type]
-        except Exception:
-            type_name = str(self.type)
-        try:
-            code_name = bytype[self.type][self.code]
-        except Exception:
-            code_name = str(self.code)
-        return f'Event({type_name}, {code_name}, {self.value})'
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-    @property
-    def is_modified(self) -> bool:
-        return self.value != self.old_value
 
 
 class Package:

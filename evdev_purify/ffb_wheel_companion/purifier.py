@@ -1,7 +1,6 @@
 import logging
 
 from evdev import InputDevice
-from evdev import ecodes as ec
 from evdev.ecodes import EV_ABS, EV_FF, EV_KEY, EV_MSC
 
 from evdev_purify.purifier import Purifier as Base
@@ -9,38 +8,9 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
+from .keymaps import Layer, remap
+
 logger = logging.getLogger(__file__)
-
-KEYMAPS = {
-    # L1
-    292: ec.KEY_Q,
-    # R1
-    293: ec.KEY_E,
-
-    # X
-    290: ec.KEY_F,
-    # Y
-    291: ec.KEY_G,
-    # A
-    288: ec.KEY_ENTER,
-    # B
-    289: ec.KEY_ESC,
-
-    # L3
-    298: ec.KEY_Z,
-    # R3
-    299: ec.KEY_X,
-
-    # Task
-    296: ec.KEY_C,
-    # Function
-    301: ec.KEY_V,
-    # Menu
-    297: ec.KEY_B,
-
-    # Home
-    300: ec.KEY_H,
-}
 
 
 class Purifier(Base):
@@ -52,6 +22,7 @@ class Purifier(Base):
     ) -> None:
         super().__init__(name)
         self._log_threshold = log_threshold
+        self._layer = Layer.BASE
 
     def _is_target(self, path: str | None) -> bool:
         if path is None:
@@ -75,6 +46,12 @@ class Purifier(Base):
         ):
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
+                # see if L2 or R2 is pressed, should activate the layer states
+                if package[0].is_L2:
+                    self._layer = Layer.LEFT if package[0].value >= 32768 else Layer.BASE
+                if package[0].is_R2:
+                    self._layer = Layer.RIGHT if package[0].value >= 32768 else Layer.BASE
+
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
                     # only log very high event count package for debug purpose
@@ -84,10 +61,8 @@ class Purifier(Base):
                     continue
 
                 # only interested in single event key-press package
-                if package.types == {EV_KEY, }:
-                    # check new code from map
-                    if (new_code := KEYMAPS[package[0].code]) is not None:
-                        # replace if new code is defined
-                        package[0].code = new_code
-                        # then send the code to new device
-                        virtual_dev.send(package)
+                if package.count(EV_KEY) == 1:
+                    # modify the package according to keymaps
+                    remapped_package = remap(package, layer=self._layer)
+                    # then send the package to new device
+                    virtual_dev.send(remapped_package)
