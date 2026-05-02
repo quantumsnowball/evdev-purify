@@ -15,11 +15,10 @@ from evdev_purify.package import Package
 def translate(
     package: Package,
     *,
-    dpadX: int,
-    dpadY: int,
+    dpad: tuple[int, int],
 ) -> tuple[int, int]:
-    # copy of current state
-    new_dpadX, new_dpadY = dpadX, dpadY
+    # create a copy of current state
+    dpad_x, dpad_y = dpad
     # loop though each event
     for e in package:
         # focus on EV_ABS
@@ -29,31 +28,31 @@ def translate(
                 if e.value == +1:
                     # right pressed, translate to east
                     e.type, e.code, e.value = EV_KEY, BTN_EAST, 1
-                    new_dpadX = +1
+                    dpad_x = +1
                 elif e.value == -1:
                     # left pressed, translate to west
                     e.type, e.code, e.value = EV_KEY, BTN_WEST, 1
-                    new_dpadX = -1
+                    dpad_x = -1
                 else:
                     # release, translate to previous direction release
                     e.type, e.value = EV_KEY, 0
-                    e.code = BTN_EAST if dpadX == 1 else BTN_WEST
-                    new_dpadX = 0
+                    e.code = BTN_EAST if dpad_x == 1 else BTN_WEST
+                    dpad_x = 0
             # on dpad left/right axis
             elif e.code == ABS_HAT0Y:
                 if e.value == +1:
                     # down pressed, translate to south
                     e.type, e.code, e.value = EV_KEY, BTN_SOUTH, 1
-                    new_dpadY = +1
+                    dpad_y = +1
                 elif e.value == -1:
                     # up pressed, translate to north
                     e.type, e.code, e.value = EV_KEY, BTN_NORTH, 1
-                    new_dpadY = -1
+                    dpad_y = -1
                 else:
                     # release, translate to previous direction release
                     e.type, e.value = EV_KEY, 0
-                    e.code = BTN_SOUTH if dpadY == 1 else BTN_NORTH
-                    new_dpadY = 0
+                    e.code = BTN_SOUTH if dpad_y == 1 else BTN_NORTH
+                    dpad_y = 0
 
     # return new state
-    return new_dpadX, new_dpadY
+    return dpad_x, dpad_y

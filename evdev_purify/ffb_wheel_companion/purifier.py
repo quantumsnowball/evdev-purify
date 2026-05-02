@@ -23,9 +23,9 @@ class Purifier(Base):
     ) -> None:
         super().__init__(name)
         self._log_threshold = log_threshold
+        # state
         self._layer = Layer.BASE
-        self._dpadX = 0
-        self._dpadY = 0
+        self._dpad: tuple[int, int] = (0, 0)
 
     def _is_target(self, path: str | None) -> bool:
         if path is None:
@@ -56,7 +56,7 @@ class Purifier(Base):
                     self._layer = Layer.RIGHT if package[0].value >= 32768 else Layer.BASE
 
                 # translate dpad into custom key events and update dpad state
-                self._dpadX, self._dpadY = translate(package, dpadX=self._dpadX, dpadY=self._dpadY)
+                self._dpad = translate(package, dpad=self._dpad)
 
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
