@@ -21,33 +21,33 @@ BindingTarget = int | None
 BindingTargets = tuple[BindingTarget, BindingTarget, BindingTarget]
 
 BINDINGS: dict[BindingSource, BindingTargets] = {
-    # L1
-    292: (ec.KEY_Q, ec.KEY_A, ec.KEY_D),
-    # R1
-    293: (ec.KEY_E, ec.KEY_W, ec.KEY_S),
+    # L1, code 292
+    ec.BTN_TOP2: (ec.KEY_Q, ec.KEY_A, ec.KEY_D),
+    # R1, code 293
+    ec.BTN_PINKIE: (ec.KEY_E, ec.KEY_W, ec.KEY_S),
 
-    # X
-    290: (ec.KEY_F, ec.KEY_R, ec.KEY_COMMA),
-    # Y
-    291: (ec.KEY_G, ec.KEY_T, ec.KEY_DOT),
-    # A
-    288: (ec.KEY_ENTER, ec.KEY_Y, ec.KEY_I),
-    # B
-    289: (ec.KEY_ESC, ec.KEY_U, ec.KEY_O),
+    # X, code 290
+    ec.BTN_THUMB2: (ec.KEY_F, ec.KEY_R, ec.KEY_COMMA),
+    # Y, code 291
+    ec.BTN_TOP: (ec.KEY_G, ec.KEY_T, ec.KEY_DOT),
+    # A, code 288
+    ec.BTN_TRIGGER: (ec.KEY_ENTER, ec.KEY_Y, ec.KEY_I),
+    # B, code 289
+    ec.BTN_THUMB: (ec.KEY_ESC, ec.KEY_U, ec.KEY_O),
 
-    # L3
-    298: (ec.KEY_Z, ec.KEY_1, ec.KEY_2),
-    # R3
-    299: (ec.KEY_X, ec.KEY_3, ec.KEY_4),
+    # L3, code 298
+    ec.BTN_BASE5: (ec.KEY_Z, ec.KEY_1, ec.KEY_2),
+    # R3, code 299
+    ec.BTN_BASE6: (ec.KEY_X, ec.KEY_3, ec.KEY_4),
 
-    # Task
-    296: (ec.KEY_C, ec.KEY_5, ec.KEY_6),
-    # Menu
-    297: (ec.KEY_B, ec.KEY_7, ec.KEY_8),
-    # Function
+    # Task, code 296
+    ec.BTN_BASE3: (ec.KEY_C, ec.KEY_5, ec.KEY_6),
+    # Menu, code 297
+    ec.BTN_BASE4: (ec.KEY_B, ec.KEY_7, ec.KEY_8),
+    # Function, code 301
     301: (ec.KEY_V, ec.KEY_9, ec.KEY_0),
 
-    # Home
+    # Home, code 300
     300: (ec.KEY_H, ec.KEY_SPACE, ec.KEY_SPACE),
 }
 
