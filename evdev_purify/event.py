@@ -1,4 +1,5 @@
 import logging
+import time
 from dataclasses import dataclass, field
 from typing import Self
 
@@ -10,10 +11,10 @@ logger = logging.getLogger(__file__)
 
 @dataclass(slots=True)
 class Event:
-    timestamp: float
     type: int
     code: int
     value: int
+    timestamp: float = field(default_factory=time.time)
     old_value: int = field(init=False)
 
     def __post_init__(self) -> None:
@@ -39,4 +40,4 @@ class Event:
 
     @classmethod
     def from_input_event(cls, e: InputEvent) -> Self:
-        return cls(e.timestamp(), e.type, e.code, e.value)
+        return cls(e.type, e.code, e.value, e.timestamp())
