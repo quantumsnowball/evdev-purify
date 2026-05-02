@@ -9,6 +9,7 @@ from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
 from . import keymaps
+from .keymaps import Layer
 
 logger = logging.getLogger(__file__)
 
@@ -22,6 +23,7 @@ class Purifier(Base):
     ) -> None:
         super().__init__(name)
         self._log_threshold = log_threshold
+        self._layer = Layer.BASE
 
     def _is_target(self, path: str | None) -> bool:
         if path is None:
@@ -45,6 +47,12 @@ class Purifier(Base):
         ):
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
+                # see if L2 or R2 is pressed, should activate the layer states
+                if package[0].is_L2:
+                    self._layer = Layer.LEFT if package[0].value == 65535 else Layer.BASE
+                if package[0].is_R2:
+                    self._layer = Layer.RIGHT if package[0].value == 65535 else Layer.BASE
+
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
                     # only log very high event count package for debug purpose
@@ -56,6 +64,6 @@ class Purifier(Base):
                 # only interested in single event key-press package
                 if package.count(EV_KEY) == 1:
                     # modify the package according to keymaps
-                    keymaps.update(package)
+                    keymaps.update(package, layer=self._layer)
                     # then send the package to new device
                     virtual_dev.send(package)

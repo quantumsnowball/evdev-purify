@@ -1,10 +1,17 @@
 import logging
+from enum import Enum
 
 from evdev import ecodes as ec
 
 from evdev_purify.package import Package
 
 logger = logging.getLogger(__file__)
+
+
+class Layer(Enum):
+    BASE = 0
+    LEFT = 1
+    RIGHT = 2
 
 
 class Keymap:
@@ -42,7 +49,10 @@ class Keymap:
 
 def update(
     package: Package,
+    *,
+    layer: Layer,
 ) -> None:
+    logger.info(f'{layer=}')
     # check new code from map for every event in the package
     for e in package:
         try:
