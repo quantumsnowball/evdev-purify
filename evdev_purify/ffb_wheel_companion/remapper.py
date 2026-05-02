@@ -54,10 +54,10 @@ BINDINGS: dict[BindingSource, BindingTargets] = {
     # Menu, code 297
     ec.BTN_BASE4: (ec.KEY_B, ec.KEY_7, ec.KEY_8),
     # Function, code 301
-    301: (ec.KEY_V, ec.KEY_9, ec.KEY_0),
+    301: (ec.KEY_SPACE, ec.KEY_9, ec.KEY_0),
 
     # Home, code 300
-    300: (ec.KEY_M, ec.KEY_TAB, ec.KEY_SPACE),
+    300: (ec.KEY_TAB, ec.KEY_M, ec.KEY_V),
 }
 
 
