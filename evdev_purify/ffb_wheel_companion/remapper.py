@@ -22,18 +22,18 @@ BindingTargets = tuple[BindingTarget, BindingTarget, BindingTarget]
 
 BINDINGS: dict[BindingSource, BindingTargets] = {
     # L1, code 292
-    ec.BTN_TOP2: (ec.KEY_Q, ec.KEY_A, ec.KEY_D),
+    ec.BTN_TOP2: (ec.KEY_Q, None, None),
     # R1, code 293
-    ec.BTN_PINKIE: (ec.KEY_E, ec.KEY_W, ec.KEY_S),
+    ec.BTN_PINKIE: (ec.KEY_E, None, None),
 
     # Down, code 304
-    ec.BTN_SOUTH: (ec.KEY_DOWN, None, None),
+    ec.BTN_SOUTH: (ec.KEY_DOWN, None, ec.KEY_S),
     # Up, code 307
-    ec.BTN_NORTH: (ec.KEY_UP, None, None),
+    ec.BTN_NORTH: (ec.KEY_UP, None, ec.KEY_W),
     # Right, code 305
-    ec.BTN_EAST: (ec.KEY_RIGHT, None, None),
+    ec.BTN_EAST: (ec.KEY_RIGHT, None, ec.KEY_D),
     # Left, code 308
-    ec.BTN_WEST: (ec.KEY_LEFT, None, None),
+    ec.BTN_WEST: (ec.KEY_LEFT, None, ec.KEY_A),
 
     # X, code 290
     ec.BTN_THUMB2: (ec.KEY_F, ec.KEY_R, ec.KEY_COMMA),
