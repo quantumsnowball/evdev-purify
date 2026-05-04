@@ -45,16 +45,16 @@ BINDINGS: dict[BindingSource, BindingTargets] = {
     ec.BTN_THUMB: (ec.KEY_ESC, ec.KEY_U, ec.KEY_SEMICOLON),
 
     # L3, code 298
-    ec.BTN_BASE5: (ec.KEY_Z, ec.KEY_1, ec.KEY_2),
+    ec.BTN_BASE5: (ec.KEY_Z, ec.KEY_6, ec.KEY_1),
     # R3, code 299
-    ec.BTN_BASE6: (ec.KEY_X, ec.KEY_3, ec.KEY_4),
+    ec.BTN_BASE6: (ec.KEY_X, ec.KEY_0, ec.KEY_5),
 
     # Task, code 296
-    ec.BTN_BASE3: (ec.KEY_C, ec.KEY_5, ec.KEY_6),
+    ec.BTN_BASE3: (ec.KEY_C, ec.KEY_7, ec.KEY_2),
     # Menu, code 297
-    ec.BTN_BASE4: (ec.KEY_B, ec.KEY_7, ec.KEY_8),
+    ec.BTN_BASE4: (ec.KEY_B, ec.KEY_9, ec.KEY_4),
     # Function, code 301
-    301: (ec.KEY_SPACE, ec.KEY_9, ec.KEY_0),
+    301: (ec.KEY_SPACE, ec.KEY_8, ec.KEY_3),
 
     # Home, code 300
     300: (ec.KEY_TAB, ec.KEY_M, ec.KEY_V),
