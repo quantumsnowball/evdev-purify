@@ -8,8 +8,8 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
-from .layer import LayerManager
-from .remapper import Layer, remap
+from .layer import Layer, LayerManager
+from .remapper import remap
 from .translator import translate
 
 logger = logging.getLogger(__file__)

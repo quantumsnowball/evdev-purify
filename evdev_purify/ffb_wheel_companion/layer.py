@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Iterator
 
 from evdev.ecodes import ABS_RX, ABS_RY, EV_ABS, EV_KEY
@@ -6,7 +7,11 @@ from evdev_purify.event import Event
 from evdev_purify.package import Package
 from evdev_purify.virtual_device import VirtualDevice
 
-from .remapper import Layer
+
+class Layer(Enum):
+    BASE = 0
+    LEFT = 1
+    RIGHT = 2
 
 
 class LayerManager:
