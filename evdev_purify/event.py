@@ -3,7 +3,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Self
 
-from evdev.ecodes import ABS_RX, ABS_RY, EV, EV_ABS, EV_KEY, bytype
+from evdev.ecodes import EV, EV_KEY, bytype
 from evdev.events import InputEvent
 
 logger = logging.getLogger(__file__)
@@ -37,14 +37,6 @@ class Event:
     @property
     def is_modified(self) -> bool:
         return self.value != self.old_value
-
-    @property
-    def is_L2(self) -> bool:
-        return self.type == EV_ABS and self.code == ABS_RX
-
-    @property
-    def is_R2(self) -> bool:
-        return self.type == EV_ABS and self.code == ABS_RY
 
     @classmethod
     def from_input_event(cls, e: InputEvent) -> Self:

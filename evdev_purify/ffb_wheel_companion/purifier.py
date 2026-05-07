@@ -8,6 +8,7 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
+from .layer import LayerManager
 from .remapper import Layer, remap
 from .translator import translate
 
@@ -49,13 +50,11 @@ class Purifier(Base):
             RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
             VirtualDevice(name=f'Pure: {self._name} - Keyboard') as virtual_dev,
         ):
+            layer_manager = LayerManager(virtual_dev)
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
                 # see if L2 or R2 is pressed, should activate the layer states
-                if package[0].is_L2:
-                    self._layer = Layer.LEFT if package[0].value >= self._layer_threshold else Layer.BASE
-                if package[0].is_R2:
-                    self._layer = Layer.RIGHT if package[0].value >= self._layer_threshold else Layer.BASE
+                self._layer = layer_manager.decide_layer(package, layer=self._layer, threshold=self._layer_threshold)
 
                 # translate dpad into custom key events and update dpad state
                 self._dpad = translate(package, dpad=self._dpad)
@@ -72,5 +71,7 @@ class Purifier(Base):
                 if package.count(EV_KEY) == 1:
                     # modify the package according to keymaps
                     remapped_package = remap(package, layer=self._layer)
+                    # record key state
+                    recorded_package = layer_manager.record_keys(remapped_package, self._layer)
                     # then send the package to new device
-                    virtual_dev.send(remapped_package)
+                    virtual_dev.send(recorded_package)
