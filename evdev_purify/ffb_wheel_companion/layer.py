@@ -28,7 +28,7 @@ class LayerManager:
         for key in self._keydown_list[layer]:
             self._virtual_dev.send_keyup(key)
         # clear the state
-        self._keydown_list[layer] = set()
+        self._keydown_list[layer].clear()
 
     def decide_layer(self, package: Package, *, layer: Layer, threshold: float) -> Layer:
         # choose which layer based on the first event
