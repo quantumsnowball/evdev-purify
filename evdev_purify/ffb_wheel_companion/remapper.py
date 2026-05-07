@@ -22,33 +22,42 @@ BindingTargets = tuple[BindingTarget, BindingTarget, BindingTarget]
 
 BINDINGS: dict[BindingSource, BindingTargets] = {
     # L1, code 292
-    ec.BTN_TOP2: (ec.KEY_Q, ec.KEY_A, ec.KEY_D),
+    ec.BTN_TOP2: (ec.KEY_Q, ec.KEY_N, ec.KEY_I),
     # R1, code 293
-    ec.BTN_PINKIE: (ec.KEY_E, ec.KEY_W, ec.KEY_S),
+    ec.BTN_PINKIE: (ec.KEY_E, ec.KEY_P, ec.KEY_O),
+
+    # Down, code 545
+    ec.BTN_DPAD_DOWN: (ec.KEY_DOWN, ec.KEY_J, ec.KEY_S),
+    # Up, code 544
+    ec.BTN_DPAD_UP: (ec.KEY_UP, ec.KEY_K, ec.KEY_W),
+    # Right, code 547
+    ec.BTN_DPAD_RIGHT: (ec.KEY_RIGHT, ec.KEY_L, ec.KEY_D),
+    # Left, code 546
+    ec.BTN_DPAD_LEFT: (ec.KEY_LEFT, ec.KEY_H, ec.KEY_A),
 
     # X, code 290
     ec.BTN_THUMB2: (ec.KEY_F, ec.KEY_R, ec.KEY_COMMA),
     # Y, code 291
     ec.BTN_TOP: (ec.KEY_G, ec.KEY_T, ec.KEY_DOT),
     # A, code 288
-    ec.BTN_TRIGGER: (ec.KEY_ENTER, ec.KEY_Y, ec.KEY_I),
+    ec.BTN_TRIGGER: (ec.KEY_ENTER, ec.KEY_Y, ec.KEY_SLASH),
     # B, code 289
-    ec.BTN_THUMB: (ec.KEY_ESC, ec.KEY_U, ec.KEY_O),
+    ec.BTN_THUMB: (ec.KEY_ESC, ec.KEY_U, ec.KEY_SEMICOLON),
 
     # L3, code 298
-    ec.BTN_BASE5: (ec.KEY_Z, ec.KEY_1, ec.KEY_2),
+    ec.BTN_BASE5: (ec.KEY_Z, ec.KEY_6, ec.KEY_1),
     # R3, code 299
-    ec.BTN_BASE6: (ec.KEY_X, ec.KEY_3, ec.KEY_4),
+    ec.BTN_BASE6: (ec.KEY_X, ec.KEY_0, ec.KEY_5),
 
     # Task, code 296
-    ec.BTN_BASE3: (ec.KEY_C, ec.KEY_5, ec.KEY_6),
+    ec.BTN_BASE3: (ec.KEY_C, ec.KEY_7, ec.KEY_2),
     # Menu, code 297
-    ec.BTN_BASE4: (ec.KEY_B, ec.KEY_7, ec.KEY_8),
+    ec.BTN_BASE4: (ec.KEY_B, ec.KEY_9, ec.KEY_4),
     # Function, code 301
-    301: (ec.KEY_V, ec.KEY_9, ec.KEY_0),
+    301: (ec.KEY_SPACE, ec.KEY_8, ec.KEY_3),
 
     # Home, code 300
-    300: (ec.KEY_H, ec.KEY_SPACE, ec.KEY_SPACE),
+    300: (ec.KEY_TAB, ec.KEY_M, ec.KEY_V),
 }
 
 
