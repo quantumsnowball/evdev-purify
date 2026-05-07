@@ -72,6 +72,6 @@ class Purifier(Base):
                     # modify the package according to keymaps
                     remapped_package = remap(package, layer=self._layer)
                     # record key state
-                    recorded_package = layer_manager.record_keys(remapped_package, self._layer)
+                    recorded_package = layer_manager.record_keys(remapped_package, layer=self._layer)
                     # then send the package to new device
                     virtual_dev.send(recorded_package)

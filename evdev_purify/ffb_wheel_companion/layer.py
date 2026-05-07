@@ -46,7 +46,7 @@ class LayerManager:
         # return new state
         return new_layer
 
-    def record_keys(self, package: Iterator[Event], layer: Layer) -> Iterator[Event]:
+    def record_keys(self, package: Iterator[Event], *, layer: Layer) -> Iterator[Event]:
         for e in package:
             # record any key up event in the package
             if e.type == EV_KEY and e.value == 1:
