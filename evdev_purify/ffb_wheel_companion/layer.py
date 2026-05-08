@@ -1,9 +1,8 @@
 from enum import Enum
-from typing import Iterator, Self
+from typing import Self
 
 from evdev.ecodes import ABS_RX, ABS_RY, EV_ABS, EV_KEY
 
-from evdev_purify.event import Event
 from evdev_purify.package import Package
 from evdev_purify.virtual_device import VirtualDevice
 
@@ -60,10 +59,11 @@ class LayerManager:
         # return new state
         self._layer = new_layer
 
-    def record_keys(self, package: Iterator[Event], *, layer: Layer) -> Iterator[Event]:
+    def record_keys(self, package: Package, *, layer: Layer) -> Package:
         for e in package:
             # record any key up event in the package
             if e.type == EV_KEY and e.value == 1:
                 self._keydown_list[layer].add(e.code)
-            # yield back all event
-            yield e
+
+        # return package
+        return package
