@@ -8,9 +8,9 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
+from .dpad import translate
 from .layer import LayerManager
 from .remapper import remap
-from .translator import translate
 
 logger = logging.getLogger(__file__)
 
