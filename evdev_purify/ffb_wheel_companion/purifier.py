@@ -68,8 +68,8 @@ class Purifier(Base):
                 # only interested in single event key-press package
                 if package.count(EV_KEY) == 1:
                     # modify the package according to keymaps
-                    remapped_package = remap(package, layer=layer_manager.layer)
+                    package = remap(package, layer=layer_manager.layer)
                     # record key state
-                    recorded_package = layer_manager.record_keys(remapped_package, layer=layer_manager.layer)
+                    package = layer_manager.record_keys(package, layer=layer_manager.layer)
                     # then send the package to new device
-                    virtual_dev.send(recorded_package)
+                    virtual_dev.send(package)
