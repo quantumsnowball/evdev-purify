@@ -8,7 +8,7 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
-from .dpad import translate
+from .dpad import DpadManager
 from .layer import LayerManager
 from .remapper import remap
 
@@ -50,10 +50,11 @@ class Purifier(Base):
             VirtualDevice(name=f'Pure: {self._name} - Keyboard') as virtual_dev,
             LayerManager(virtual_dev) as layer_manager,
         ):
+            dpad_manager = DpadManager()
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
                 # translate dpad into custom key events and update dpad state
-                self._dpad = translate(package, dpad=self._dpad)
+                self._dpad = dpad_manager.translate(package, dpad=self._dpad)
 
                 # see if L2 or R2 is pressed, should activate the layer states
                 layer_manager.decide_layer(package, threshold=self._layer_threshold)
