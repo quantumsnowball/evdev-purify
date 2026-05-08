@@ -25,7 +25,7 @@ class DpadManager:
     def __exit__(self, *_) -> None:
         pass
 
-    def translate(self, package: Package) -> None:
+    def translate(self, package: Package) -> Package:
         # create a copy of current state
         dpad_x, dpad_y = self._dpad
         # loop though each event
@@ -65,3 +65,6 @@ class DpadManager:
 
         # set new state
         self._dpad = dpad_x, dpad_y
+
+        # return package
+        return package
