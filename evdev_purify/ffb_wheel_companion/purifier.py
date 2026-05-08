@@ -52,11 +52,11 @@ class Purifier(Base):
         ):
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
-                # see if L2 or R2 is pressed, should activate the layer states
-                layer_manager.decide_layer(package, threshold=self._layer_threshold)
-
                 # translate dpad into custom key events and update dpad state
                 self._dpad = translate(package, dpad=self._dpad)
+
+                # see if L2 or R2 is pressed, should activate the layer states
+                layer_manager.decide_layer(package, threshold=self._layer_threshold)
 
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
