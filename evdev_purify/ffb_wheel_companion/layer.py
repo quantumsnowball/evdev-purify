@@ -51,11 +51,9 @@ class LayerManager:
             Layer.RIGHT if package[0].code == ABS_RY and package[0].value >= threshold else
             Layer.BASE
         )
-
         # if layer changed, clear previous layer
         if new_layer != self._layer:
             self.clear_layer(self._layer)
-
         # return new state
         self._layer = new_layer
 
@@ -64,6 +62,5 @@ class LayerManager:
             # record any key up event in the package
             if e.type == EV_KEY and e.value == 1:
                 self._keydown_list[layer].add(e.code)
-
         # return package
         return package

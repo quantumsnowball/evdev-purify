@@ -62,9 +62,7 @@ class DpadManager:
                         e.type, e.value = EV_KEY, 0
                         e.code = BTN_DPAD_DOWN if dpad_y == 1 else BTN_DPAD_UP
                         dpad_y = 0
-
         # set new state
         self._dpad = dpad_x, dpad_y
-
         # return package
         return package
