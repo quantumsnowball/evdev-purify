@@ -8,7 +8,8 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
-from .remapper import Layer, remap
+from .layer import LayerManager
+from .remapper import remap
 from .translator import translate
 
 logger = logging.getLogger(__file__)
@@ -26,7 +27,6 @@ class Purifier(Base):
         self._layer_threshold = layer_activation * 65535
         self._log_threshold = log_threshold
         # state
-        self._layer = Layer.BASE
         self._dpad: tuple[int, int] = (0, 0)
 
     def _is_target(self, path: str | None) -> bool:
@@ -48,14 +48,12 @@ class Purifier(Base):
         with (
             RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
             VirtualDevice(name=f'Pure: {self._name} - Keyboard') as virtual_dev,
+            LayerManager(virtual_dev) as layer_manager,
         ):
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
                 # see if L2 or R2 is pressed, should activate the layer states
-                if package[0].is_L2:
-                    self._layer = Layer.LEFT if package[0].value >= self._layer_threshold else Layer.BASE
-                if package[0].is_R2:
-                    self._layer = Layer.RIGHT if package[0].value >= self._layer_threshold else Layer.BASE
+                layer_manager.decide_layer(package, threshold=self._layer_threshold)
 
                 # translate dpad into custom key events and update dpad state
                 self._dpad = translate(package, dpad=self._dpad)
@@ -71,6 +69,8 @@ class Purifier(Base):
                 # only interested in single event key-press package
                 if package.count(EV_KEY) == 1:
                     # modify the package according to keymaps
-                    remapped_package = remap(package, layer=self._layer)
+                    remapped_package = remap(package, layer=layer_manager.layer)
+                    # record key state
+                    recorded_package = layer_manager.record_keys(remapped_package, layer=layer_manager.layer)
                     # then send the package to new device
-                    virtual_dev.send(remapped_package)
+                    virtual_dev.send(recorded_package)

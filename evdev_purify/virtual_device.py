@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Iterator, Self, override
 
 from evdev import InputDevice, InputEvent, UInput
-from evdev.ecodes import EV, EV_FF, EV_SYN, bytype
+from evdev.ecodes import EV, EV_FF, EV_KEY, EV_SYN, bytype
 
 from .event import Event
 from .package import Package
@@ -84,6 +84,10 @@ class VirtualDevice(UInput):
             except Exception:
                 code_name = str(e.code)
             logger.debug(f'SENT: {dt}, {type_name}, {code_name}, {e.value=}')
+
+    def send_keyup(self, key: int) -> None:
+        self.write(EV_KEY, key, 0)
+        self.syn()
 
     @override
     @classmethod
