@@ -52,11 +52,9 @@ class Purifier(Base):
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
                 # translate dpad into custom key events and update dpad state
-                dpad_manager.translate(package)
-
+                package = dpad_manager.translate(package)
                 # see if L2 or R2 is pressed, should activate the layer states
                 layer_manager.decide_layer(package, threshold=self._layer_threshold)
-
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
                     # only log very high event count package for debug purpose
@@ -64,12 +62,11 @@ class Purifier(Base):
                         logger.info(f'BIG: {package}')
                     # skip to next
                     continue
-
                 # only interested in single event key-press package
                 if package.count(EV_KEY) == 1:
                     # modify the package according to keymaps
-                    remapped_package = remap(package, layer=layer_manager.layer)
+                    package = remap(package, layer=layer_manager.layer)
                     # record key state
-                    recorded_package = layer_manager.record_keys(remapped_package, layer=layer_manager.layer)
+                    package = layer_manager.record_keys(package, layer=layer_manager.layer)
                     # then send the package to new device
-                    virtual_dev.send(recorded_package)
+                    virtual_dev.send(package)

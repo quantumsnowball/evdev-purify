@@ -1,9 +1,7 @@
 import logging
-from typing import Iterator
 
 from evdev import ecodes as ec
 
-from evdev_purify.event import Event
 from evdev_purify.package import Package
 
 from .layer import Layer
@@ -56,22 +54,26 @@ BINDINGS: dict[BindingSource, BindingTargets] = {
 }
 
 
-def remap(package: Package, *, layer: Layer) -> Iterator[Event]:
+def remap(package: Package, *, layer: Layer) -> Package:
+    # init
+    result = Package()
     # check new code from map for every event in the package
     for e in package:
         # yield non key press events
         if e.type != ec.EV_KEY:
-            yield e
+            result.append(e)
             continue
         # yield and continue if binding targets is not defined
         code_map = BINDINGS.get(e.code, None)
         if code_map is None:
-            yield e
+            result.append(e)
             continue
         # try to replace a if code is defined in KEYMAP
         new_code = code_map[layer.value]
         if new_code is not None:
             e.code = new_code
-            yield e
+            result.append(e)
         # keymap is None, skip yield
         pass
+    # return package
+    return result
