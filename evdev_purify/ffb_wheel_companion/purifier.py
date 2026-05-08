@@ -49,8 +49,8 @@ class Purifier(Base):
         with (
             RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
             VirtualDevice(name=f'Pure: {self._name} - Keyboard') as virtual_dev,
+            LayerManager(virtual_dev) as layer_manager,
         ):
-            layer_manager = LayerManager(virtual_dev)
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
                 # see if L2 or R2 is pressed, should activate the layer states

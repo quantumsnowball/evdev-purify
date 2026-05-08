@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Iterator
+from typing import Iterator, Self
 
 from evdev.ecodes import ABS_RX, ABS_RY, EV_ABS, EV_KEY
 
@@ -22,6 +22,12 @@ class LayerManager:
             Layer.LEFT: set(),
             Layer.RIGHT: set(),
         }
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *_) -> None:
+        pass
 
     def clear_layer(self, layer: Layer) -> None:
         # send keyup events
