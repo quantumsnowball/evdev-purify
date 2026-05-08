@@ -22,12 +22,18 @@ class LayerManager:
             Layer.LEFT: set(),
             Layer.RIGHT: set(),
         }
+        # state
+        self._layer = Layer.BASE
 
     def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *_) -> None:
         pass
+
+    @property
+    def layer(self) -> Layer:
+        return self._layer
 
     def clear_layer(self, layer: Layer) -> None:
         # send keyup events
@@ -36,21 +42,21 @@ class LayerManager:
         # clear the state
         self._keydown_list[layer].clear()
 
-    def decide_layer(self, package: Package, *, layer: Layer, threshold: float) -> Layer:
+    def decide_layer(self, package: Package, *, threshold: float) -> None:
         # choose which layer based on the first event
         new_layer = (
-            layer if package[0].type != EV_ABS else
+            self._layer if package[0].type != EV_ABS else
             Layer.LEFT if package[0].code == ABS_RX and package[0].value >= threshold else
             Layer.RIGHT if package[0].code == ABS_RY and package[0].value >= threshold else
             Layer.BASE
         )
 
         # if layer changed, clear previous layer
-        if new_layer != layer:
-            self.clear_layer(layer)
+        if new_layer != self._layer:
+            self.clear_layer(self._layer)
 
         # return new state
-        return new_layer
+        self._layer = new_layer
 
     def record_keys(self, package: Iterator[Event], *, layer: Layer) -> Iterator[Event]:
         for e in package:
