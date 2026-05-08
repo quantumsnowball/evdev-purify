@@ -1,3 +1,5 @@
+from typing import Self
+
 from evdev.ecodes import (
     ABS_HAT0X,
     ABS_HAT0Y,
@@ -14,6 +16,12 @@ from evdev_purify.package import Package
 
 class DpadManager:
     def __init__(self) -> None:
+        pass
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *_) -> None:
         pass
 
     def translate(

@@ -49,8 +49,8 @@ class Purifier(Base):
             RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
             VirtualDevice(name=f'Pure: {self._name} - Keyboard') as virtual_dev,
             LayerManager(virtual_dev) as layer_manager,
+            DpadManager() as dpad_manager,
         ):
-            dpad_manager = DpadManager()
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
                 # translate dpad into custom key events and update dpad state
