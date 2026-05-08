@@ -16,21 +16,25 @@ class Package:
         self._events = list[Event]()
 
     def __len__(self) -> int:
-        # len count exclude SYN event
-        return len(self._events[:-1])
+        return len(self._events)
 
     def __getitem__(self, key) -> Event:
         return self._events[key]
 
     def __iter__(self) -> Iterator[Event]:
-        yield from self._events
+        return iter(self._events)
 
     def __repr__(self) -> str:
         return f'Package{tuple(self)}'
 
     def __str__(self) -> str:
         dt = datetime.fromtimestamp(self._events[0].timestamp).isoformat(timespec='milliseconds').replace('T', '_')
-        return f'Package(time={dt}, len={len(self)}, types={self.type_names})'
+        return f'Package(time={dt}, items_count={self.items_count}, types={self.type_names})'
+
+    @property
+    def items_count(self) -> int:
+        # len count exclude SYN event
+        return max(0, len(self._events)-1)
 
     @property
     def types(self) -> set[int]:

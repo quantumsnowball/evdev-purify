@@ -60,7 +60,7 @@ class Purifier(Base):
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
                     # only log very high event count package for debug purpose
-                    if len(package) >= self._log_threshold:
+                    if package.items_count >= self._log_threshold:
                         logger.info(f'BIG: {package}')
                     # skip to next
                     continue

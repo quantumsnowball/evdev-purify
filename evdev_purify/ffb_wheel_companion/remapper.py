@@ -56,11 +56,7 @@ BINDINGS: dict[BindingSource, BindingTargets] = {
 }
 
 
-def remap(
-    package: Package,
-    *,
-    layer: Layer,
-) -> Iterator[Event]:
+def remap(package: Package, *, layer: Layer) -> Iterator[Event]:
     # check new code from map for every event in the package
     for e in package:
         # yield non key press events
