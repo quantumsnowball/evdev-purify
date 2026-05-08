@@ -8,9 +8,9 @@ from evdev_purify.real_device import RealDevice
 from evdev_purify.retry import retry_loop
 from evdev_purify.virtual_device import VirtualDevice
 
+from .dpad import DpadManager
 from .layer import LayerManager
 from .remapper import remap
-from .translator import translate
 
 logger = logging.getLogger(__file__)
 
@@ -26,8 +26,6 @@ class Purifier(Base):
         super().__init__(name)
         self._layer_threshold = layer_activation * 65535
         self._log_threshold = log_threshold
-        # state
-        self._dpad: tuple[int, int] = (0, 0)
 
     def _is_target(self, path: str | None) -> bool:
         if path is None:
@@ -49,14 +47,15 @@ class Purifier(Base):
             RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
             VirtualDevice(name=f'Pure: {self._name} - Keyboard') as virtual_dev,
             LayerManager(virtual_dev) as layer_manager,
+            DpadManager() as dpad_manager,
         ):
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
+                # translate dpad into custom key events and update dpad state
+                dpad_manager.translate(package)
+
                 # see if L2 or R2 is pressed, should activate the layer states
                 layer_manager.decide_layer(package, threshold=self._layer_threshold)
-
-                # translate dpad into custom key events and update dpad state
-                self._dpad = translate(package, dpad=self._dpad)
 
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
