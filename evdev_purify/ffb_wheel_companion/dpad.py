@@ -16,7 +16,8 @@ from evdev_purify.package import Package
 
 class DpadManager:
     def __init__(self) -> None:
-        pass
+        # state
+        self._dpad: tuple[int, int] = (0, 0)
 
     def __enter__(self) -> Self:
         return self
@@ -24,14 +25,9 @@ class DpadManager:
     def __exit__(self, *_) -> None:
         pass
 
-    def translate(
-        self,
-        package: Package,
-        *,
-        dpad: tuple[int, int],
-    ) -> tuple[int, int]:
+    def translate(self, package: Package) -> None:
         # create a copy of current state
-        dpad_x, dpad_y = dpad
+        dpad_x, dpad_y = self._dpad
         # loop though each event
         for e in package:
             # focus on EV_ABS
@@ -67,5 +63,5 @@ class DpadManager:
                         e.code = BTN_DPAD_DOWN if dpad_y == 1 else BTN_DPAD_UP
                         dpad_y = 0
 
-        # return new state
-        return dpad_x, dpad_y
+        # set new state
+        self._dpad = dpad_x, dpad_y

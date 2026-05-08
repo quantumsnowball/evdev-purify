@@ -26,8 +26,6 @@ class Purifier(Base):
         super().__init__(name)
         self._layer_threshold = layer_activation * 65535
         self._log_threshold = log_threshold
-        # state
-        self._dpad: tuple[int, int] = (0, 0)
 
     def _is_target(self, path: str | None) -> bool:
         if path is None:
@@ -54,7 +52,7 @@ class Purifier(Base):
             # look at all src events and process them
             for package in real_dev.packages(drop=(EV_MSC, )):
                 # translate dpad into custom key events and update dpad state
-                self._dpad = dpad_manager.translate(package, dpad=self._dpad)
+                dpad_manager.translate(package)
 
                 # see if L2 or R2 is pressed, should activate the layer states
                 layer_manager.decide_layer(package, threshold=self._layer_threshold)
