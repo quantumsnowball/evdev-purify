@@ -26,10 +26,12 @@ class LayerManager:
         self._layer = Layer.BASE
 
     def __enter__(self) -> Self:
+        self._layer = Layer.BASE
         return self
 
     def __exit__(self, *_) -> None:
-        pass
+        for layer in Layer:
+            self.clear_layer(layer)
 
     @property
     def layer(self) -> Layer:
