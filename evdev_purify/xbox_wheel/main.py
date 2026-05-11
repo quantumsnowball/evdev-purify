@@ -3,6 +3,8 @@ from typing import Annotated
 
 from typer import Argument, Option, Typer
 
+from .purifier import Purifier
+
 app = Typer()
 
 
@@ -22,3 +24,12 @@ def xbox_wheel(
         level=logging.DEBUG if debug else logging.INFO,
         format='%(levelname)s [%(filename)s:%(lineno)d] %(message)s' if debug else '%(message)s',
     )
+
+    # device
+    purifier = Purifier(name)
+
+    # run
+    try:
+        purifier.run()
+    except KeyboardInterrupt:
+        logger.info('\nPurifier Stopped by user.')
