@@ -1,9 +1,12 @@
 import logging
 
-from evdev import InputDevice, UInput
-from evdev.ecodes import EV_ABS, EV_FF, EV_SYN
+from evdev import InputDevice
+from evdev.ecodes import EV_ABS, EV_FF, EV_KEY, EV_MSC, EV_SYN
 
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.real_device import RealDevice
+from evdev_purify.retry import retry_loop
+from evdev_purify.virtual_device import VirtualDevice
 
 from .ffb_effect import FFBEffectManager
 
@@ -14,16 +17,16 @@ class Purifier(Base):
     def __init__(
         self,
         name: str,
+        *,
+        log_threshold: int,
     ) -> None:
         super().__init__(name)
-        self._dst_dev = UInput.from_device(
-            self._src_dev,
-            name=f'Purifier: {name}',
-            filtered_types=(EV_SYN, ),
-        )
-        self._ffb_effect_manager = FFBEffectManager(self, self._dst_dev)
+        self._log_threshold = log_threshold
 
-    def _is_targeted_device(self, dev: InputDevice) -> bool:
+    def _is_target(self, path: str | None) -> bool:
+        if path is None:
+            return False
+        dev = InputDevice(path)
         caps = dev.capabilities()
         return (
             dev.name == self._name and
@@ -31,23 +34,23 @@ class Purifier(Base):
             EV_FF in caps
         )
 
+    @retry_loop(
+        welcome_message='Starting Purifier ...',
+        oserror_message='Device disconnected, retrying ...',
+    )
     def run(self) -> None:
-        logger.info(f'Starting Purifier ...')
+        with (
+            RealDevice.find_or_wait_for(self._name, self._is_target, grab=True) as real_dev,
+            VirtualDevice.from_device(real_dev, name=f'Pure: {self._name}', filtered_types=(EV_SYN, ),) as virtual_dev,
+            FFBEffectManager(real_dev, virtual_dev),
+        ):
+            # then process all src events
+            for package in real_dev.packages(drop=(EV_MSC, )):
 
-        # retry loop
-        while True:
-            try:
-                # intercept all src events
-                self._src_dev.grab()
-                logger.info(f'Grabbed {self._name}')
+                # if a package contains more than one EV_KEY event, consider these noise
+                if package.count(EV_KEY) > 1:
+                    # modify the packet, drop all the EV_KEY events, only log very high event count package for debug purpose
+                    package.drop(EV_KEY, log_threshold=self._log_threshold)
 
-                # then process all src events
-                for p in self._packages:
-                    # TODO: filtering and remapping here
-
-                    # passthrough all other irrelevant events
-                    p.send(self._dst_dev)
-            except OSError:
-                logger.info('Device disconnected, retrying ...')
-            except Exception as e:
-                logger.error(e)
+                # passthrough all other irrelevant events
+                virtual_dev.send(package)

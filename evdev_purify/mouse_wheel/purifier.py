@@ -1,12 +1,14 @@
 import logging
-import time
 from collections import deque
 
-from evdev import InputDevice, UInput
-from evdev.ecodes import EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
+from evdev import InputDevice
+from evdev.ecodes import EV_MSC, EV_REL, REL_WHEEL, REL_WHEEL_HI_RES
 
 from evdev_purify.package import Package
 from evdev_purify.purifier import Purifier as Base
+from evdev_purify.real_device import RealDevice
+from evdev_purify.retry import retry_loop
+from evdev_purify.virtual_device import VirtualDevice
 
 from .scheduler import Scheduler
 
@@ -16,13 +18,13 @@ logger = logging.getLogger(__file__)
 class WheelBuffer:
     def __init__(
         self,
-        dst_dev: UInput,
+        virtual_dev: VirtualDevice,
         *,
         delay: float,
         min_history_len: int,
         max_event_interval: float,
     ) -> None:
-        self._dst_dev = dst_dev
+        self._virtual_dev = virtual_dev
         self._history = deque[Package]()
         self._last_timestamp = 0.0
         self._min_history_len = min_history_len
@@ -33,7 +35,7 @@ class WheelBuffer:
         # pop value
         package = self._history.popleft()
         # write to dst dev
-        package.send(self._dst_dev)
+        self._virtual_dev.send(package)
         # debug
         bd = '====' if package[0].is_modified else '    '
         logger.info(f"{f'     |{bd}>' if package[0].value > 0 else f'<{bd}|     '}")
@@ -74,44 +76,41 @@ class Purifier(Base):
         max_event_interval: float,
     ) -> None:
         super().__init__(name)
-        self._dst_dev = UInput.from_device(self._src_dev, name=f'Purifier: {name}')
-        self._wheel_buffer = WheelBuffer(
-            self._dst_dev,
-            delay=delay,
-            min_history_len=min_history_len,
-            max_event_interval=max_event_interval,
-        )
+        self._delay = delay
+        self._min_history_len = min_history_len
+        self._max_event_interval = max_event_interval
 
-    def _is_targeted_device(self, dev: InputDevice) -> bool:
+    def _is_target(self, path: str | None) -> bool:
+        if path is None:
+            return False
+        dev = InputDevice(path)
         return dev.name == self._name
 
+    @retry_loop(
+        welcome_message='Starting Purifier ...',
+        oserror_message='Device disconnected, retrying ...',
+        init_delay=0.5,
+    )
     def run(self) -> None:
-        logger.info(f'Starting Purifier ...')
-        # small delay befoe grab, avoid command Enter release being capped
-        # NOTE: please press enter key quickly
-        time.sleep(0.5)
+        with (
+            RealDevice.find_or_wait_for(self._name, self._is_target, grab=True) as real_dev,
+            VirtualDevice.from_device(real_dev, name=f'Pure: {self._name}') as virtual_dev,
+        ):
+            # buffer for each virtual_dev created
+            wheel_buffer = WheelBuffer(
+                virtual_dev,
+                delay=self._delay,
+                min_history_len=self._min_history_len,
+                max_event_interval=self._max_event_interval,
+            )
+            # then process all src events
+            for package in real_dev.packages(drop=(EV_MSC, )):
+                # use the first event as to classify package
+                e = package[0]
+                # filter out wheel scroll relevant events
+                if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
+                    wheel_buffer.append(package)
+                    continue
 
-        # retry loop
-        while True:
-            try:
-                # intercept all src events
-                self._src_dev.grab()
-                logger.info(f'Grabbed {self._name}')
-
-                # then process all src events
-                for p in self._packages:
-                    # use the first event as to classify package
-                    e = p[0]
-                    # filter out wheel scroll relevant events
-                    if e.type == EV_REL and (e.code == REL_WHEEL or e.code == REL_WHEEL_HI_RES):
-                        self._wheel_buffer.append(p)
-                        # debug
-                        # print(f"src_dev: {' |-' if e.value > 0 else '-| '}")
-                        continue
-
-                    # passthrough all other irrelevant events
-                    p.send(self._dst_dev)
-            except OSError:
-                logger.info('Device disconnected, retrying ...')
-            except Exception as e:
-                logger.error(e)
+                # passthrough all other irrelevant events
+                virtual_dev.send(package)
