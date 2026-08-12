@@ -84,27 +84,24 @@ class LayerManager:
     def decide_layer(self, package: Package, *, threshold: float) -> None:
         # change state and make layer decision based on the first event
         e = package[0]
-
-        # non axis signal, stay on the same level
-        if e.type != EV_ABS:
-            new_layer = self._layer
-        # axis signal except L2 or R2 axis signal, stay on the same level
-        elif e.code not in (ABS_RX, ABS_RY):
-            new_layer = self._layer
-        # L2 and larger than threshold, tap left layer
-        elif e.code == ABS_RX and e.value >= threshold:
-            new_layer = self._layer_counter.tap_left()
-        # R2 and larger than threshold, tap right layer
-        elif e.code == ABS_RY and e.value >= threshold:
-            new_layer = self._layer_counter.tap_right()
-        # otherwise
-        else:
-            new_layer = self._layer_counter.reset()
+        new_layer = (
+            # non axis signal, stay on the same level
+            self._layer if e.type != EV_ABS else
+            # axis signal except L2 or R2 axis signal, stay on the same level
+            self._layer if e.code not in (ABS_RX, ABS_RY) else
+            # L2 and larger than threshold, switch to left layer
+            self._layer_counter.tap_left() if e.code == ABS_RX and e.value >= threshold else
+            # R2 and larger than threshold, switch to right layer
+            self._layer_counter.tap_right() if e.code == ABS_RY and e.value >= threshold else
+            # otherwise
+            self._layer_counter.reset()
+        )
 
         # if layer changed, clear previous layer
         if new_layer != self._layer:
             self.clear_layer(self._layer)
-        # return new state
+
+        # set new state
         self._layer = new_layer
 
     def record_keys(self, package: Package, *, layer: Layer) -> Package:
