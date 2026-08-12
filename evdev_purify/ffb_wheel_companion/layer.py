@@ -29,20 +29,20 @@ class Counter:
 
 
 class LayerCounter:
-    def __init__(self, watermark: int = 5) -> None:
-        self._watermark = watermark
+    def __init__(self, hit: int) -> None:
+        self._hit = hit
         self._left = Counter()
         self._right = Counter()
 
     def tap_left(self) -> Layer:
         self._left.tap()
         self._right.reset()
-        return Layer.LEFT if self._left.count >= self._watermark else Layer.BASE
+        return Layer.LEFT if self._left.count >= self._hit else Layer.BASE
 
     def tap_right(self) -> Layer:
         self._right.tap()
         self._left.reset()
-        return Layer.RIGHT if self._right.count >= self._watermark else Layer.BASE
+        return Layer.RIGHT if self._right.count >= self._hit else Layer.BASE
 
     def reset(self) -> Layer:
         self._left.reset()
@@ -51,7 +51,12 @@ class LayerCounter:
 
 
 class LayerManager:
-    def __init__(self, virtual_dev: VirtualDevice) -> None:
+    def __init__(
+        self,
+        virtual_dev: VirtualDevice,
+        *,
+        layer_hit: int,
+    ) -> None:
         self._virtual_dev = virtual_dev
         self._keydown_list: dict[Layer, set[int]] = {
             Layer.BASE: set(),
@@ -60,7 +65,7 @@ class LayerManager:
         }
         # state
         self._layer = Layer.BASE
-        self._layer_counter = LayerCounter()
+        self._layer_counter = LayerCounter(layer_hit)
 
     def __enter__(self) -> Self:
         self._layer = Layer.BASE
