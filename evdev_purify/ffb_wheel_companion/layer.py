@@ -13,6 +13,43 @@ class Layer(Enum):
     RIGHT = 2
 
 
+class Counter:
+    def __init__(self) -> None:
+        self._count = 0
+
+    @property
+    def count(self) -> int:
+        return self._count
+
+    def tap(self) -> None:
+        self._count += 1
+
+    def reset(self) -> None:
+        self._count = 0
+
+
+class LayerCounter:
+    def __init__(self, watermark: int = 5) -> None:
+        self._watermark = watermark
+        self._left = Counter()
+        self._right = Counter()
+
+    def tap_left(self) -> Layer:
+        self._left.tap()
+        self._right.reset()
+        return Layer.LEFT if self._left.count >= self._watermark else Layer.BASE
+
+    def tap_right(self) -> Layer:
+        self._right.tap()
+        self._left.reset()
+        return Layer.RIGHT if self._right.count >= self._watermark else Layer.BASE
+
+    def reset(self) -> Layer:
+        self._left.reset()
+        self._right.reset()
+        return Layer.BASE
+
+
 class LayerManager:
     def __init__(self, virtual_dev: VirtualDevice) -> None:
         self._virtual_dev = virtual_dev
@@ -23,8 +60,9 @@ class LayerManager:
         }
         # state
         self._layer = Layer.BASE
-        self._layer_left_event_count = 0
-        self._layer_right_event_count = 0
+        self._layer_counter = LayerCounter()
+        # self._layer_left_event_count = 0
+        # self._layer_right_event_count = 0
 
     def __enter__(self) -> Self:
         self._layer = Layer.BASE
@@ -67,17 +105,20 @@ class LayerManager:
         elif e.code not in (ABS_RX, ABS_RY):
             new_layer = self._layer
         elif e.code == ABS_RX and e.value >= threshold:
-            self._layer_left_event_count += 1
-            new_layer = Layer.LEFT if self._layer_left_event_count >= 5 else Layer.BASE
-            self._layer_right_event_count = 0
+            # self._layer_left_event_count += 1
+            # new_layer = Layer.LEFT if self._layer_left_event_count >= 5 else Layer.BASE
+            # self._layer_right_event_count = 0
+            new_layer = self._layer_counter.tap_left()
         elif e.code == ABS_RY and e.value >= threshold:
-            self._layer_right_event_count += 1
-            new_layer = Layer.RIGHT if self._layer_right_event_count >= 5 else Layer.BASE
-            self._layer_left_event_count = 0
+            # self._layer_right_event_count += 1
+            # new_layer = Layer.RIGHT if self._layer_right_event_count >= 5 else Layer.BASE
+            # self._layer_left_event_count = 0
+            new_layer = self._layer_counter.tap_right()
         else:
-            new_layer = Layer.BASE
-            self._layer_left_event_count = 0
-            self._layer_right_event_count = 0
+            # new_layer = Layer.BASE
+            # self._layer_left_event_count = 0
+            # self._layer_right_event_count = 0
+            new_layer = self._layer_counter.reset()
 
         # if layer changed, clear previous layer
         if new_layer != self._layer:
