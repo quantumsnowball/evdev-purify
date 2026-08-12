@@ -55,9 +55,11 @@ class LayerManager:
         self,
         virtual_dev: VirtualDevice,
         *,
-        layer_hit: int,
+        threshold: float,
+        hit: int,
     ) -> None:
         self._virtual_dev = virtual_dev
+        self._threshold = threshold
         self._keydown_list: dict[Layer, set[int]] = {
             Layer.BASE: set(),
             Layer.LEFT: set(),
@@ -65,7 +67,7 @@ class LayerManager:
         }
         # state
         self._layer = Layer.BASE
-        self._layer_counter = LayerCounter(layer_hit)
+        self._layer_counter = LayerCounter(hit)
 
     def __enter__(self) -> Self:
         self._layer = Layer.BASE
@@ -86,7 +88,7 @@ class LayerManager:
         # clear the state
         self._keydown_list[layer].clear()
 
-    def decide_layer(self, package: Package, *, threshold: float) -> None:
+    def decide_layer(self, package: Package) -> None:
         # change state and make layer decision based on the first event
         e = package[0]
         new_layer = (
@@ -95,9 +97,9 @@ class LayerManager:
             # axis signal except L2 or R2 axis signal, stay on the same level
             self._layer if e.code not in (ABS_RX, ABS_RY) else
             # L2 and larger than threshold, switch to left layer
-            self._layer_counter.tap_left() if e.code == ABS_RX and e.value >= threshold else
+            self._layer_counter.tap_left() if e.code == ABS_RX and e.value >= self._threshold else
             # R2 and larger than threshold, switch to right layer
-            self._layer_counter.tap_right() if e.code == ABS_RY and e.value >= threshold else
+            self._layer_counter.tap_right() if e.code == ABS_RY and e.value >= self._threshold else
             # otherwise
             self._layer_counter.reset()
         )
