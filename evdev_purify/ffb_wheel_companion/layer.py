@@ -13,9 +13,53 @@ class Layer(Enum):
     RIGHT = 2
 
 
+class Counter:
+    def __init__(self) -> None:
+        self._count = 0
+
+    @property
+    def count(self) -> int:
+        return self._count
+
+    def tap(self) -> None:
+        self._count += 1
+
+    def reset(self) -> None:
+        self._count = 0
+
+
+class LayerCounter:
+    def __init__(self, hit: int) -> None:
+        self._hit = hit
+        self._left = Counter()
+        self._right = Counter()
+
+    def tap_left(self) -> Layer:
+        self._left.tap()
+        self._right.reset()
+        return Layer.LEFT if self._left.count >= self._hit else Layer.BASE
+
+    def tap_right(self) -> Layer:
+        self._right.tap()
+        self._left.reset()
+        return Layer.RIGHT if self._right.count >= self._hit else Layer.BASE
+
+    def reset(self) -> Layer:
+        self._left.reset()
+        self._right.reset()
+        return Layer.BASE
+
+
 class LayerManager:
-    def __init__(self, virtual_dev: VirtualDevice) -> None:
+    def __init__(
+        self,
+        virtual_dev: VirtualDevice,
+        *,
+        threshold: float,
+        hit: int,
+    ) -> None:
         self._virtual_dev = virtual_dev
+        self._threshold = threshold
         self._keydown_list: dict[Layer, set[int]] = {
             Layer.BASE: set(),
             Layer.LEFT: set(),
@@ -23,6 +67,7 @@ class LayerManager:
         }
         # state
         self._layer = Layer.BASE
+        self._layer_counter = LayerCounter(hit)
 
     def __enter__(self) -> Self:
         self._layer = Layer.BASE
@@ -43,8 +88,8 @@ class LayerManager:
         # clear the state
         self._keydown_list[layer].clear()
 
-    def decide_layer(self, package: Package, *, threshold: float) -> None:
-        # choose which layer based on the first event
+    def decide_layer(self, package: Package) -> None:
+        # change state and make layer decision based on the first event
         e = package[0]
         new_layer = (
             # non axis signal, stay on the same level
@@ -52,16 +97,18 @@ class LayerManager:
             # axis signal except L2 or R2 axis signal, stay on the same level
             self._layer if e.code not in (ABS_RX, ABS_RY) else
             # L2 and larger than threshold, switch to left layer
-            Layer.LEFT if e.code == ABS_RX and e.value >= threshold else
+            self._layer_counter.tap_left() if e.code == ABS_RX and e.value >= self._threshold else
             # R2 and larger than threshold, switch to right layer
-            Layer.RIGHT if e.code == ABS_RY and e.value >= threshold else
+            self._layer_counter.tap_right() if e.code == ABS_RY and e.value >= self._threshold else
             # otherwise
-            Layer.BASE
+            self._layer_counter.reset()
         )
+
         # if layer changed, clear previous layer
         if new_layer != self._layer:
             self.clear_layer(self._layer)
-        # return new state
+
+        # set new state
         self._layer = new_layer
 
     def record_keys(self, package: Package, *, layer: Layer) -> Package:

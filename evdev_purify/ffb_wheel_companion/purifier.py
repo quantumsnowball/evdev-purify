@@ -21,10 +21,12 @@ class Purifier(Base):
         name: str,
         *,
         layer_activation: float,
+        layer_hit: int,
         log_threshold: int,
     ) -> None:
         super().__init__(name)
         self._layer_threshold = layer_activation * 65535
+        self._layer_hit = layer_hit
         self._log_threshold = log_threshold
 
     def _is_target(self, path: str | None) -> bool:
@@ -46,7 +48,7 @@ class Purifier(Base):
         with (
             RealDevice.find_or_wait_for(self._name, self._is_target, grab=False) as real_dev,
             VirtualDevice(name=f'Pure: {self._name} - Keyboard') as virtual_dev,
-            LayerManager(virtual_dev) as layer_manager,
+            LayerManager(virtual_dev, threshold=self._layer_threshold, hit=self._layer_hit) as layer_manager,
             DpadManager() as dpad_manager,
         ):
             # look at all src events and process them
@@ -54,7 +56,7 @@ class Purifier(Base):
                 # translate dpad into custom key events and update dpad state
                 package = dpad_manager.translate(package)
                 # see if L2 or R2 is pressed, should activate the layer states
-                layer_manager.decide_layer(package, threshold=self._layer_threshold)
+                layer_manager.decide_layer(package)
                 # if a package contains more than one EV_KEY event, consider these noise
                 if package.count(EV_KEY) > 1:
                     # only log very high event count package for debug purpose
