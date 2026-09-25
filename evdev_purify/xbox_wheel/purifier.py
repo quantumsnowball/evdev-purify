@@ -1,8 +1,7 @@
 import logging
-from collections import defaultdict
 
 from evdev import InputDevice
-from evdev.ecodes import EV, EV_MSC, EV_SYN, bytype
+from evdev.ecodes import EV_KEY, EV_MSC
 
 from evdev_purify.purifier import Purifier as Base
 from evdev_purify.real_device import RealDevice
@@ -17,11 +16,10 @@ class Purifier(Base):
         self,
         name: str,
         *,
-        max_event_interval: float,
+        log_threshold: int,
     ) -> None:
         super().__init__(name)
-        self._max_event_interval = max_event_interval
-        self._last_timestamp: dict[int, dict[int, float]] = defaultdict(lambda: defaultdict(float))
+        self._log_threshold = log_threshold
 
     def _is_target(self, path: str | None) -> bool:
         if path is None:
@@ -32,7 +30,6 @@ class Purifier(Base):
     @retry_loop(
         welcome_message='Starting Purifier ...',
         oserror_message='Device disconnected, retrying ...',
-        init_delay=0.5,
     )
     def run(self) -> None:
         with (
@@ -41,19 +38,12 @@ class Purifier(Base):
         ):
             # then process all src events
             for package in real_dev.packages(drop=(EV_MSC, )):
-                # use the first event as the comparison target
-                e = package[0]
-
-                # intercept for non EV_SYN keydown event
-                if e.type != EV_SYN and e.value == 1:
-                    # calc the time interval from the last event with the same type and code
-                    interval = e.timestamp - self._last_timestamp[e.type][e.code]
-                    # move the timestamp to new position
-                    self._last_timestamp[e.type][e.code] = e.timestamp
-                    # if interval is too short, discard the packet
-                    if interval < self._max_event_interval:
-                        logger.info(f'DROP: time={interval*1000:.2f}ms, {EV[e.type]}, {bytype[e.type][e.code]}, {e.value=}')
-                        continue
-
+                # if a package contains more than one EV_KEY event, consider these noise
+                if package.count(EV_KEY) > 1:
+                    # only log very high event count package for debug purpose
+                    if package.items_count >= self._log_threshold:
+                        logger.info(f'BIG: {package}')
+                    # skip to next
+                    continue
                 # passthrough all other irrelevant events
                 virtual_dev.send(package)
